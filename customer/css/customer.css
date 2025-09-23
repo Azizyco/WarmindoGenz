@@ -1,0 +1,144 @@
+/* Customer Specific Styles (Mobile-first) */
+
+body {
+    background-color: var(--bg);
+    color: var(--ink);
+    font-size: 16px;
+}
+
+.container {
+    padding: 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.main-header {
+    text-align: center;
+    padding: 2rem 1rem;
+}
+
+.main-header h1 {
+    color: var(--primary-ink);
+    margin-bottom: 0.5rem;
+}
+
+.main-header p {
+    color: var(--muted);
+    max-width: 40ch;
+    margin: 0 auto;
+}
+
+.card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow);
+    text-align: center;
+}
+
+.card h2 {
+    margin-top: 0;
+    color: var(--ink);
+}
+
+.btn {
+    margin-top: 1rem;
+}
+
+/* Menu Page */
+.menu-header {
+    padding: 1rem;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+}
+
+.back-link {
+    font-size: 0.9rem;
+    color: var(--primary);
+    text-decoration: none;
+    margin-bottom: 1rem;
+    display: inline-block;
+}
+
+.menu-header h1 {
+    text-align: center;
+    margin: 0 0 1rem 0;
+}
+
+.search-bar input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: 1rem;
+}
+
+.category-nav {
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    padding: 0.5rem 0;
+    overflow-x: auto;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--border);
+}
+
+.category-nav ul {
+    list-style: none;
+    padding: 0 1rem;
+    margin: 0;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.category-nav li button {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.category-nav li button.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    font-weight: 600;
+}
+
+#menu-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding-top: 1rem;
+    padding-bottom: 80px; /* Space for FAB */
+}
+
+.cart-fab {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+}
+
+.cart-fab .btn {
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+
+@media (min-width: 640px) {
+    #menu-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    #menu-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}

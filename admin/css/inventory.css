@@ -1,0 +1,184 @@
+/* Status Banner */
+.status-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    background-color: var(--surface-color);
+    padding: 6px 12px;
+    border-radius: var(--rounded-lg);
+    border: 1px solid var(--border-color);
+}
+
+.status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+}
+
+.status-online {
+    background-color: var(--success-color);
+    box-shadow: 0 0 8px var(--success-color);
+}
+
+.status-offline {
+    background-color: var(--error-color);
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.tab-link {
+    padding: 12px 20px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: var(--text-secondary-color);
+    font-size: 16px;
+    font-weight: 500;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.tab-link:hover {
+    color: var(--text-color);
+}
+
+.tab-link.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Low Stock Badge */
+.badge {
+    padding: 4px 8px;
+    border-radius: var(--rounded-full);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.badge-low-stock {
+    background-color: #4f2b2b;
+    color: #ef9a9a;
+    border: 1px solid #ef5350;
+}
+
+/* Ledger Movement Badges */
+.badge-movement {
+    color: white;
+    padding: 4px 10px;
+    border-radius: var(--rounded-md);
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 80px;
+    display: inline-block;
+}
+.badge-purchase { background-color: #059669; } /* emerald-600 */
+.badge-adjustment { background-color: #0284c7; } /* sky-600 */
+.badge-sale_deduct { background-color: #a16207; } /* yellow-600 */
+.badge-waste { background-color: #be123c; } /* rose-700 */
+.badge-return { background-color: #7c3aed; } /* violet-600 */
+
+
+/* BOM Layout */
+.bom-layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 24px;
+}
+
+.bom-selector-panel {
+    background-color: var(--surface-color);
+    padding: 20px;
+    border-radius: var(--rounded-lg);
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.bom-selector-panel h3 {
+    margin-top: 0;
+}
+
+.bom-details-panel {
+    min-height: 400px;
+}
+
+/* General Table & Toolbar */
+.table-container {
+    overflow-x: auto;
+}
+
+.toolbar {
+    margin-bottom: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.toolbar input, .toolbar select {
+    max-width: 250px;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 24px;
+}
+
+.pagination button {
+    padding: 8px 12px;
+}
+
+.pagination span {
+    padding: 8px 12px;
+    color: var(--text-secondary-color);
+}
+
+/* Read-only state */
+.write-access[disabled] {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .bom-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .toolbar input, .toolbar select {
+        max-width: 100%;
+    }
+}

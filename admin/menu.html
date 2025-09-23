@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen Menu | Resto Admin</title>
+    <link rel="stylesheet" href="../shared/css/global.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1 class="logo">RestoAdmin</h1>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="/admin/">Dashboard</a></li>
+                    <li><a href="/admin/pos.html">POS</a></li>
+                    <li><a href="/admin/orders.html">Pesanan</a></li>
+                    <li class="nav-group">
+                        <span>Dapur</span>
+                        <ul>
+                            <li><a href="/admin/kds/hotline.html">KDS Hotline</a></li>
+                            <li><a href="/admin/kds/drink.html">KDS Minuman</a></li>
+                            <li><a href="/admin/kds/dessert.html">KDS Dessert</a></li>
+                        </ul>
+                    </li>
+                    <li class="active"><a href="/admin/menu.html">Menu</a></li>
+                    <li><a href="/admin/inventory.html">Inventaris</a></li>
+                    <li><a href="/admin/reports.html">Laporan</a></li>
+                    <li><a href="/admin/refunds.html">Refund</a></li>
+                    <li><a href="/admin/settings.html">Pengaturan</a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <span id="user-email"></span>
+                    <button id="logout-btn">Logout</button>
+                </div>
+            </div>
+        </aside>
+        <main class="main-content">
+            <header class="main-header">
+                <h2>Manajemen Menu</h2>
+                <div class="header-actions">
+                    <button id="add-item-btn" class="btn btn-primary">Tambah Item Baru</button>
+                </div>
+            </header>
+            <div class="content-area">
+                <div class="toolbar">
+                    <input type="search" id="search-menu" placeholder="Cari item menu...">
+                    <select id="category-filter">
+                        <option value="all">Semua Kategori</option>
+                        <!-- Kategori akan dimuat oleh JS -->
+                    </select>
+                </div>
+                <div class="menu-table-container">
+                    <table class="data-table" id="menu-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Kategori</th>
+                                <th>Harga</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="menu-table-body">
+                            <!-- Data menu akan dimuat di sini -->
+                        </tbody>
+                    </table>
+                    <div id="loading-indicator" class="loading-indicator">
+                        <p>Memuat data menu...</p>
+                    </div>
+                    <div id="empty-state" class="empty-state" style="display: none;">
+                        <h3>Tidak Ada Item Ditemukan</h3>
+                        <p>Belum ada item menu yang cocok dengan pencarian Anda. Coba <a href="#" id="add-item-link">tambahkan item baru</a>.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal untuk Tambah/Edit Item Menu -->
+    <div id="menu-item-modal" class="modal-overlay" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modal-title">Tambah Item Menu Baru</h3>
+                <button id="close-modal-btn" class="close-button">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="menu-item-form" novalidate>
+                    <input type="hidden" id="item-id" name="id">
+                    <input type="hidden" id="item-current-photo-url" name="current_photo_url">
+                    <div class="form-group">
+                        <label for="item-name">Nama Item</label>
+                        <input type="text" id="item-name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="item-category">Kategori</label>
+                        <select id="item-category" name="category_id" required>
+                            <!-- Opsi kategori akan dimuat oleh JS -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="item-price">Harga</label>
+                        <input type="number" id="item-price" name="price" required min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="item-description">Deskripsi (Opsional)</label>
+                        <textarea id="item-description" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="item-image-file">Gambar Item</label>
+                        <div class="image-upload-wrapper">
+                            <img id="image-preview" src="https://via.placeholder.com/150" alt="Pratinjau gambar" class="image-preview">
+                            <input type="file" id="item-image-file" name="image_file" accept="image/*">
+                        </div>
+                        <small>Pilih file baru untuk mengganti gambar yang ada.</small>
+                    </div>
+                    <div class="form-group form-group-checkbox">
+                        <input type="checkbox" id="item-is-available" name="is_available" checked>
+                        <label for="item-is-available">Tersedia untuk dipesan</label>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" id="cancel-btn" class="btn btn-secondary">Batal</button>
+                        <button type="submit" id="save-btn" class="btn btn-primary">Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module" src="js/main.js"></script>
+    <script type="module" src="js/menu.js"></script>
+</body>
+</html>
