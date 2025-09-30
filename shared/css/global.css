@@ -134,3 +134,55 @@ button:disabled {
 .toast-success { background-color: var(--ok); }
 .toast-warning { background-color: var(--warning); }
 .toast-error { background-color: var(--danger); }
+
+/* Chips untuk menampilkan label/alergen */
+.chips { display:flex; flex-wrap:wrap; gap:.25rem .25rem; }
+.chip {
+  display:inline-block;
+  padding:.2rem .5rem;
+  border-radius:999px;
+  background:#FFF7ED;          /* amber-50 */
+  border:1px solid #F59E0B;     /* amber-500 */
+  font-size:.8rem;
+  color: var(--ink);
+}
+.muted { color: var(--muted); }
+/* Backdrop modal */
+#menu-item-modal{
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: none;              /* dibuka via JS: display:flex */
+  align-items: flex-start;    /* jangan center vertikal agar ada ruang scroll */
+  justify-content: center;
+  padding: 24px 16px;         /* ruang di atas/bawah */
+  background: rgba(17,24,39,.6);
+  overflow: auto;             /* <- biar backdrop bisa scroll jika konten sangat tinggi */
+}
+
+/* Kartu/modal container di dalam backdrop */
+#menu-item-modal .modal-card,
+#menu-item-modal .modal-content {
+  width: 100%;
+  max-width: 720px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0,0,0,.2);
+  max-height: calc(100dvh - 48px); /* tinggi maksimal */
+  overflow: auto;                   /* <- konten di dalam bisa scroll */
+}
+
+/* Kunci body agar tidak scroll saat modal terbuka */
+body.modal-open { overflow: hidden; }
+
+/* Mobile tweaks */
+@media (max-width: 640px){
+  #menu-item-modal{
+    padding: 12px;
+  }
+  #menu-item-modal .modal-card,
+  #menu-item-modal .modal-content{
+    max-height: 100dvh;  /* full tinggi layar */
+    border-radius: 12px;
+  }
+}

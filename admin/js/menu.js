@@ -51,6 +51,10 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('item-name').value = item.name;
             document.getElementById('item-category').value = item.category_id;
             document.getElementById('item-price').value = item.price;
+            // ADD: populate labels & allergen
+            document.getElementById('item-labels').value   = (item?.labels   || []).join(', ');
+            document.getElementById('item-allergen').value = (item?.allergen || []).join(', ');
+
             document.getElementById('item-description').value = item.description || '';
             document.getElementById('item-current-photo-url').value = item.photo_url || '';
             imagePreview.src = item.photo_url || placeholderImage;
@@ -61,10 +65,13 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('item-current-photo-url').value = '';
         }
         modal.style.display = 'flex';
+        document.body.classList.add('modal-open');  // kunci body
+        modal.scrollTop = 0;    
     };
 
     const closeModal = () => {
         modal.style.display = 'none';
+        document.body.classList.remove('modal-open');
     };
 
     const fetchCategories = async () => {
@@ -83,6 +90,23 @@ document.addEventListener('DOMContentLoaded', () => {
             categoryFilter.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
             itemCategorySelect.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
         });
+    };
+// ADD: helpers for tags
+    const toArray = (str) => (str || '')
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
+
+    const escapeHtml = (s='') => s
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'",'&#39;');
+
+    const renderChips = (arr = []) => {
+    if (!arr || !arr.length) return '<span class="muted">-</span>';
+    return `<div class="chips">` + arr.map(x => `<span class="chip">${escapeHtml(x)}</span>`).join('') + `</div>`;
     };
 
     const fetchMenuItems = async () => {
@@ -136,6 +160,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 </td>
                 <td>${item.menu_categories ? item.menu_categories.name : 'Tanpa Kategori'}</td>
                 <td>Rp ${Number(item.price).toLocaleString('id-ID')}</td>
+                <td>${renderChips(item.labels)}</td>
+                <td>${renderChips(item.allergen)}</td>
                 <td>
                     <span class="status-badge ${item.is_available ? 'status-available' : 'status-unavailable'}">
                         ${item.is_available ? 'Tersedia' : 'Habis'}
@@ -151,76 +177,110 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     menuItemForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        saveBtn.disabled = true;
-        saveBtn.textContent = 'Menyimpan...';
+    e.preventDefault();
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Menyimpan...';
 
+    try {
         const formData = new FormData(menuItemForm);
         const id = formData.get('id');
-        const imageFile = formData.get('image_file');
-        let photoUrl = formData.get('current_photo_url');
 
-        // Alur upload: jika ada file baru yang dipilih
-        if (imageFile && imageFile.size > 0) {
-            const fileExt = imageFile.name.split('.').pop();
-            const fileName = `public/${Date.now()}.${fileExt}`;
+        // Parse array dari input teks "dipisah koma"
+        const labelsArr   = toArray(formData.get('labels'));
+        const allergenArr = toArray(formData.get('allergen'));
 
-            const { error: uploadError } = await supabase.storage
-                .from('menu-photos')
-                .upload(fileName, imageFile);
+        // Nilai dasar
+        const name        = (formData.get('name') || '').trim();
+        const category_id = formData.get('category_id');
+        const price       = Number(formData.get('price') || 0);
+        const description = (formData.get('description') || '').trim() || null;
+        const is_available = document.getElementById('item-is-available').checked;
 
-            if (uploadError) {
-                showToast(`Gagal mengupload gambar: ${uploadError.message}`, 'error');
-                saveBtn.disabled = false;
-                saveBtn.textContent = 'Simpan';
-                return;
-            }
-
-            // Ambil URL publik dari file yang baru diupload
-            const { data: urlData } = supabase.storage
-                .from('menu-photos')
-                .getPublicUrl(fileName);
-            
-            photoUrl = urlData.publicUrl;
-
-            // Hapus gambar lama jika ada (saat mengedit)
-            const oldPhotoUrl = formData.get('current_photo_url');
-            if (oldPhotoUrl) {
-                const oldPath = getPathFromUrl(oldPhotoUrl);
-                if (oldPath) {
-                    await supabase.storage.from('menu-photos').remove([oldPath]);
-                }
-            }
+        // Validasi minimal
+        if (!name) {
+        showToast('Nama item wajib diisi', 'error');
+        return;
+        }
+        if (!category_id) {
+        showToast('Kategori wajib dipilih', 'error');
+        return;
+        }
+        if (!Number.isFinite(price) || price < 0) {
+        showToast('Harga tidak valid', 'error');
+        return;
         }
 
-        const itemData = {
-            name: formData.get('name'),
-            category_id: formData.get('category_id'),
-            price: Number(formData.get('price')),
-            description: formData.get('description'),
-            photo_url: photoUrl,
-            is_available: document.getElementById('item-is-available').checked,
+        // Handle Upload Gambar (opsional)
+        const imageFile = formData.get('image_file');
+        let photoUrl = formData.get('current_photo_url') || null;
+
+        if (imageFile && imageFile.size > 0) {
+        const fileExt = imageFile.name.split('.').pop();
+        const fileName = `menus/${id || 'new'}/${Date.now()}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+            .from('menu-photos')
+            .upload(fileName, imageFile);
+
+        if (uploadError) {
+            showToast(`Gagal mengupload gambar: ${uploadError.message}`, 'error');
+            return;
+        }
+
+        // Dapatkan URL publik
+        const { data: urlData } = supabase.storage
+            .from('menu-photos')
+            .getPublicUrl(fileName);
+
+        photoUrl = urlData.publicUrl;
+
+        // Hapus foto lama (jika ada dan ganti baru)
+        const oldPhotoUrl = formData.get('current_photo_url');
+        if (oldPhotoUrl) {
+            const oldPath = getPathFromUrl(oldPhotoUrl);
+            if (oldPath) {
+            await supabase.storage.from('menu-photos').remove([oldPath]);
+            }
+        }
+        }
+
+        // Payload final (SATU sumber kebenaran)
+        const payload = {
+        name,
+        category_id,
+        price,
+        description,
+        is_available,
+        labels: labelsArr,
+        allergen: allergenArr,
+        photo_url: photoUrl
         };
 
-        let result;
-        if (id) {
-            result = await supabase.from('menus').update(itemData).eq('id', id);
+        // INSERT vs UPDATE (satu kali saja)
+        let error = null;
+        if (!id) {
+        ({ error } = await supabase.from('menus').insert([payload]));
         } else {
-            result = await supabase.from('menus').insert([itemData]);
+        ({ error } = await supabase.from('menus').update(payload).eq('id', id));
         }
 
-        const { error } = result;
         if (error) {
-            showToast(`Gagal menyimpan item: ${error.message}`, 'error');
-        } else {
-            showToast(`Item berhasil ${id ? 'diperbarui' : 'ditambahkan'}!`, 'success');
-            closeModal();
-            fetchMenuItems();
+        showToast(`Gagal menyimpan item: ${error.message}`, 'error');
+        return;
         }
-        
+
+        showToast(`Item berhasil ${id ? 'diperbarui' : 'ditambahkan'}!`, 'success');
+        closeModal();
+        fetchMenuItems();
+    } catch (err) {
+        console.error(err);
+        showToast('Terjadi kesalahan tak terduga saat menyimpan', 'error');
+    } finally {
         saveBtn.disabled = false;
         saveBtn.textContent = 'Simpan';
+    }
     });
+
 
     tableBody.addEventListener('click', async (e) => {
         const editBtn = e.target.closest('.edit-btn');

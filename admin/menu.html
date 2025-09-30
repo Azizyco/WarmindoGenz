@@ -29,7 +29,6 @@
                     <li class="active"><a href="/admin/menu.html">Menu</a></li>
                     <li><a href="/admin/inventory.html">Inventaris</a></li>
                     <li><a href="/admin/reports.html">Laporan</a></li>
-                    <li><a href="/admin/refunds.html">Refund</a></li>
                     <li><a href="/admin/settings.html">Pengaturan</a></li>
                 </ul>
             </nav>
@@ -58,14 +57,17 @@
                 <div class="menu-table-container">
                     <table class="data-table" id="menu-table">
                         <thead>
-                            <tr>
-                                <th>Item</th>
-                                <th>Kategori</th>
-                                <th>Harga</th>
-                                <th>Status</th>
-                                <th>Aksi</th>
-                            </tr>
+                        <tr>
+                            <th>Item</th>
+                            <th>Kategori</th>
+                            <th>Harga</th>
+                            <th>Label</th>
+                            <th>Alergen</th>
+                            <th>Status</th>
+                            <th>Aksi</th>
+                        </tr>
                         </thead>
+
                         <tbody id="menu-table-body">
                             <!-- Data menu akan dimuat di sini -->
                         </tbody>
@@ -119,6 +121,19 @@
                         </div>
                         <small>Pilih file baru untuk mengganti gambar yang ada.</small>
                     </div>
+                    <!-- ADD: Labels (text[] as comma-separated) -->
+                    <div class="form-group">
+                        <label for="item-labels">Label (pisahkan dengan koma)</label>
+                        <input type="text" id="item-labels" name="labels" placeholder="contoh: pedas, rekomendasi">
+                        <small>Disimpan sebagai array text[].</small>
+                    </div>
+
+                    <!-- ADD: Allergen (text[] as comma-separated) -->
+                    <div class="form-group">
+                        <label for="item-allergen">Alergen (pisahkan dengan koma)</label>
+                        <input type="text" id="item-allergen" name="allergen" placeholder="contoh: gluten, susu, kacang">
+                    </div>
+
                     <div class="form-group form-group-checkbox">
                         <input type="checkbox" id="item-is-available" name="is_available" checked>
                         <label for="item-is-available">Tersedia untuk dipesan</label>
