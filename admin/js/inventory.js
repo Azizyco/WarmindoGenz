@@ -134,7 +134,8 @@ document.addEventListener('DOMContentLoaded', () => {
             supabase.from('ingredients').select('*').order('name'),
             supabase.from('suppliers').select('*').order('name'),
             supabase.from('menus').select('id, name').order('name'),
-            supabase.from('menu_options').select('id, name').order('name')
+            supabase.from('options').select('id, name').order('name') 
+            
         ]);
         allIngredientsCache = ingredients.data || [];
         allSuppliersCache = suppliers.data || [];
@@ -400,7 +401,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${formatNumber(item.qty)}</td>
                 <td>${item.ingredients.unit}</td>
                 <td>
-                    <button class="btn btn-sm btn-danger delete-bom-item-btn write-access" data-id="${item.id}" data-name="${item.ingredients.name}">Hapus</button>
+              <button class="btn btn-sm btn-danger delete-bom-item-btn write-access"
+              data-ingredient-id="${item.ingredient_id}"
+              data-name="${item.ingredients.name}">Hapus</button>
                 </td>
             </tr>
         `).join('');
@@ -408,7 +411,10 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     const loadBomForMenu = async (menuId) => {
         bomMenuTableBody.innerHTML = '<tr><td colspan="4" class="text-center">Memuat...</td></tr>';
-        const { data, error } = await supabase.from('recipes_bom').select('id, qty, ingredients(name, unit)').eq('menu_id', menuId);
+        const { data, error } = await supabase
+        .from('recipes_bom')
+        .select('ingredient_id, qty:qty_per_menu, ingredients(name, unit)')
+        .eq('menu_id', menuId);
         if (error) {
             showToast('Gagal memuat resep menu.', 'error');
             console.error(error);
@@ -419,7 +425,10 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     const loadBomForOption = async (optionId) => {
         bomOptionTableBody.innerHTML = '<tr><td colspan="4" class="text-center">Memuat...</td></tr>';
-        const { data, error } = await supabase.from('option_bom').select('id, qty, ingredients(name, unit)').eq('option_id', optionId);
+        const { data, error } = await supabase
+        .from('option_bom')
+        .select('ingredient_id, qty, ingredients(name, unit)')
+        .eq('option_id', optionId);
         if (error) {
             showToast('Gagal memuat resep opsi.', 'error');
             console.error(error);
@@ -444,10 +453,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const entityType = bomEntityTypeInput.value;
         const ingredientId = bomIngredientSelect.value;
         const qty = parseFloat(bomQtyInput.value);
-        const tableName = entityType === 'menu' ? 'recipes_bom' : 'option_bom';
-        const column_name = entityType === 'menu' ? 'menu_id' : 'option_id';
-
-        const { error } = await supabase.from(tableName).insert([{ [column_name]: entityId, ingredient_id: ingredientId, qty: qty }]);
+        const tableName   = entityType === 'menu' ? 'recipes_bom' : 'option_bom';
+        const idColumn    = entityType === 'menu' ? 'menu_id'     : 'option_id';
+        const qtyColumn   = entityType === 'menu' ? 'qty_per_menu': 'qty';
+        const payload = { [idColumn]: entityId, ingredient_id: ingredientId, [qtyColumn]: qty };
+        const { error } = await supabase.from(tableName).insert([payload]);
         if (error) {
             showToast(`Gagal menyimpan resep: ${error.message}`, 'error');
             console.error(error);
@@ -458,18 +468,27 @@ document.addEventListener('DOMContentLoaded', () => {
             else loadBomForOption(entityId);
         }
     };
-    const handleDeleteBomItem = async (id, type, name) => {
-        if (!confirm(`Yakin ingin menghapus bahan "${name}" dari resep ini?`)) return;
-        const tableName = type === 'menu' ? 'recipes_bom' : 'option_bom';
-        const { error } = await supabase.from(tableName).delete().eq('id', id);
-        if (error) {
-            showToast('Gagal menghapus bahan resep.', 'error');
-        } else {
-            showToast('Bahan resep berhasil dihapus.', 'success');
-            if (type === 'menu') loadBomForMenu(bomMenuSelect.value);
-            else loadBomForOption(bomOptionSelect.value);
-        }
+    const handleDeleteBomItem = async (ingredientId, type, name) => {
+    if (!confirm(`Yakin ingin menghapus bahan "${name}" dari resep ini?`)) return;
+
+    const tableName = type === 'menu' ? 'recipes_bom' : 'option_bom';
+    const idColumn  = type === 'menu' ? 'menu_id'     : 'option_id';
+    const entityId  = type === 'menu' ? bomMenuSelect.value : bomOptionSelect.value;
+
+    const { error } = await supabase
+        .from(tableName)
+        .delete()
+        .match({ [idColumn]: entityId, ingredient_id: ingredientId });
+
+    if (error) {
+        showToast('Gagal menghapus bahan resep.', 'error');
+    } else {
+        showToast('Bahan resep berhasil dihapus.', 'success');
+        if (type === 'menu') loadBomForMenu(bomMenuSelect.value);
+        else loadBomForOption(bomOptionSelect.value);
+    }
     };
+
     const setupBomEventListeners = () => {
         bomMenuSelect.addEventListener('change', (e) => {
             const menuId = e.target.value;
@@ -502,12 +521,12 @@ document.addEventListener('DOMContentLoaded', () => {
             bomUnitInput.value = selected ? selected.unit : '';
         });
         bomMenuTableBody.addEventListener('click', (e) => {
-            const deleteBtn = e.target.closest('.delete-bom-item-btn');
-            if (deleteBtn) handleDeleteBomItem(deleteBtn.dataset.id, 'menu', deleteBtn.dataset.name);
+        const btn = e.target.closest('.delete-bom-item-btn');
+        if (btn) handleDeleteBomItem(btn.dataset.ingredientId, 'menu', btn.dataset.name);
         });
         bomOptionTableBody.addEventListener('click', (e) => {
-            const deleteBtn = e.target.closest('.delete-bom-item-btn');
-            if (deleteBtn) handleDeleteBomItem(deleteBtn.dataset.id, 'option', deleteBtn.dataset.name);
+        const btn = e.target.closest('.delete-bom-item-btn');
+        if (btn) handleDeleteBomItem(btn.dataset.ingredientId, 'option', btn.dataset.name);
         });
     };
 
@@ -518,56 +537,91 @@ document.addEventListener('DOMContentLoaded', () => {
         populateSelectWithOptions(ledgerSupplierSelect, allSuppliersCache, '--- Pilih Supplier ---');
         loadLedgerData();
     };
-    const renderLedgerTable = (data) => {
-        if (!data || data.length === 0) {
-            ledgerTableBody.innerHTML = '<tr><td colspan="9" class="text-center">Tidak ada pergerakan stok ditemukan.</td></tr>';
-            return;
-        }
-        ledgerTableBody.innerHTML = data.map(item => `
-            <tr>
-                <td>${formatDate(item.created_at)}</td>
-                <td><span class="badge-movement badge-${item.movement_type}">${item.movement_type.replace('_', ' ')}</span></td>
-                <td>${item.ingredients.name}</td>
-                <td class="${item.qty > 0 ? 'text-success' : 'text-danger'}">${formatNumber(item.qty)}</td>
-                <td>${item.ingredients.unit}</td>
-                <td>${item.suppliers?.name || '-'}</td>
-                <td>${item.note || '-'}</td>
-                <td>${item.profiles?.email.split('@')[0] || 'N/A'}</td>
-                <td>
-                    <button class="btn btn-sm btn-danger delete-ledger-btn write-access" data-id="${item.id}">Hapus</button>
-                </td>
-            </tr>
-        `).join('');
-        toggleEditability();
-    };
+const renderLedgerTable = (data) => {
+  if (!data || data.length === 0) {
+    ledgerTableBody.innerHTML = '<tr><td colspan="9" class="text-center">Tidak ada pergerakan stok ditemukan.</td></tr>';
+    return;
+  }
+
+  ledgerTableBody.innerHTML = data.map(item => {
+    const movement = (item.movement_type ?? item.action ?? '').toString();
+    const movementLabel = movement ? movement.replace('_', ' ') : '-';
+    const byDisplay = '-';
+
+    return `
+      <tr>
+        <td>${formatDate(item.created_at)}</td>
+        <td><span class="badge-movement badge-${movement}">${movementLabel}</span></td>
+        <td>${item.ingredients.name}</td>
+        <td class="${item.qty > 0 ? 'text-success' : 'text-danger'}">${formatNumber(item.qty)}</td>
+        <td>${item.ingredients.unit}</td>
+        <td>${item.suppliers?.name || '-'}</td>
+        <td>${item.note || '-'}</td>
+        <td>${byDisplay}</td>
+        <td>
+          <button class="btn btn-sm btn-danger delete-ledger-btn write-access" data-id="${item.id}">Hapus</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  toggleEditability();
+};
+
     const renderLedgerPagination = () => {
         const totalPages = Math.ceil(ledgerTotalRows / LEDGER_ROWS_PER_PAGE); if (totalPages <= 1) { ledgerPagination.innerHTML = ''; return; }
         ledgerPagination.innerHTML = `<button class="btn" id="ledger-prev-page" ${ledgerCurrentPage === 1 ? 'disabled' : ''}>&laquo; Prev</button><span>Halaman ${ledgerCurrentPage} dari ${totalPages}</span><button class="btn" id="ledger-next-page" ${ledgerCurrentPage === totalPages ? 'disabled' : ''}>Next &raquo;</button>`;
         document.getElementById('ledger-prev-page')?.addEventListener('click', () => { if (ledgerCurrentPage > 1) { ledgerCurrentPage--; loadLedgerData(); } });
         document.getElementById('ledger-next-page')?.addEventListener('click', () => { if (ledgerCurrentPage < totalPages) { ledgerCurrentPage++; loadLedgerData(); } });
     };
-    const loadLedgerData = async () => {
-        ledgerTableBody.innerHTML = '<tr><td colspan="9" class="text-center">Memuat...</td></tr>';
-        const from = (ledgerCurrentPage - 1) * LEDGER_ROWS_PER_PAGE;
-        const to = from + LEDGER_ROWS_PER_PAGE - 1;
-        try {
-            let query = supabase.from('stock_ledger').select('*, ingredients(name, unit), suppliers(name), profiles(email)', { count: 'exact' });
-            if (ledgerDateFrom.value) query = query.gte('created_at', new Date(ledgerDateFrom.value).toISOString());
-            if (ledgerDateTo.value) query = query.lte('created_at', new Date(ledgerDateTo.value).toISOString());
-            if (ledgerIngredientFilter.value) query = query.eq('ingredient_id', ledgerIngredientFilter.value);
-            if (ledgerMovementFilter.value) query = query.eq('movement_type', ledgerMovementFilter.value);
-            
-            const { data, error, count } = await query.order('created_at', { ascending: false }).range(from, to);
-            if (error) throw error;
-            ledgerTotalRows = count;
-            renderLedgerTable(data);
-            renderLedgerPagination();
-        } catch (error) {
-            console.error('Error loading ledger:', error);
-            showToast(`Error memuat ledger: ${error.message}`, 'error');
-            ledgerTableBody.innerHTML = '<tr><td colspan="9" class="text-center">Gagal memuat data.</td></tr>';
-        }
-    };
+    
+const loadLedgerData = async () => {
+  ledgerTableBody.innerHTML = '<tr><td colspan="9" class="text-center">Memuat...</td></tr>';
+  const from = (ledgerCurrentPage - 1) * LEDGER_ROWS_PER_PAGE;
+  const to   = from + LEDGER_ROWS_PER_PAGE - 1;
+
+  try {
+    let query = supabase
+      .from('stock_ledger')
+      .select(`
+        id,
+        created_at,
+        ingredient_id,
+        qty,
+        ref_supplier,
+        note,
+        ingredients(name, unit),
+        suppliers:suppliers!stock_ledger_ref_supplier_fkey ( name )
+      `, { count: 'exact' });
+
+    if (ledgerDateFrom.value)         query = query.gte('created_at', new Date(ledgerDateFrom.value).toISOString());
+    if (ledgerDateTo.value)           query = query.lte('created_at', new Date(ledgerDateTo.value).toISOString());
+    if (ledgerIngredientFilter.value) query = query.eq('ingredient_id', ledgerIngredientFilter.value);
+    // movement_type DI-CLIENT (karena di DB namanya kemungkinan 'action')
+    const { data, error, count } = await query
+      .order('created_at', { ascending: false })
+      .range(from, to);
+
+    if (error) throw error;
+
+    let rows = data || [];
+    if (ledgerMovementFilter.value) {
+      const wanted = ledgerMovementFilter.value;
+      rows = rows.filter(r => (r.movement_type ?? r.action ?? '') === wanted);
+    }
+
+    ledgerTotalRows = count || 0;
+    renderLedgerTable(rows);
+    renderLedgerPagination();
+
+  } catch (error) {
+    console.error('Error loading ledger:', error);
+    showToast(`Error memuat ledger: ${error.message}`, 'error');
+    ledgerTableBody.innerHTML = '<tr><td colspan="9" class="text-center">Gagal memuat data.</td></tr>';
+  }
+};
+
+
     const openLedgerModal = () => {
         ledgerEntryForm.reset();
         ledgerIdInput.value = '';
@@ -588,13 +642,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const entry = {
-            movement_type: movement,
-            ingredient_id: ledgerIngredientSelect.value,
-            qty: qty,
-            supplier_id: ledgerSupplierSelect.value || null,
-            note: document.getElementById('ledger-note').value || null,
-            user_id: user.id
+        action: movement,                                  // ← ganti dari movement_type
+        ingredient_id: ledgerIngredientSelect.value,
+        qty: qty,
+        ref_supplier: ledgerSupplierSelect.value || null,  // ← ganti dari supplier_id
+        note: document.getElementById('ledger-note').value || null,
+
         };
+
+
 
         const { error } = await supabase.from('stock_ledger').insert([entry]);
         if (error) {
@@ -634,32 +690,53 @@ document.addEventListener('DOMContentLoaded', () => {
             const deleteBtn = e.target.closest('.delete-ledger-btn');
             if (deleteBtn) handleDeleteLedgerEntry(deleteBtn.dataset.id);
         });
-        exportLedgerCsvBtn.addEventListener('click', async () => {
-            showToast('Mempersiapkan data ekspor...', 'info');
-            try {
-                let query = supabase.from('stock_ledger').select('created_at, movement_type, ingredients(name, unit), qty, suppliers(name), note, profiles(email)');
-                if (ledgerDateFrom.value) query = query.gte('created_at', new Date(ledgerDateFrom.value).toISOString());
-                if (ledgerDateTo.value) query = query.lte('created_at', new Date(ledgerDateTo.value).toISOString());
-                if (ledgerIngredientFilter.value) query = query.eq('ingredient_id', ledgerIngredientFilter.value);
-                if (ledgerMovementFilter.value) query = query.eq('movement_type', ledgerMovementFilter.value);
-                const { data, error } = await query.order('created_at', { ascending: false });
-                if (error) throw error;
-                const dataToExport = data.map(item => ({
-                    waktu: formatDate(item.created_at),
-                    pergerakan: item.movement_type,
-                    bahan: item.ingredients.name,
-                    qty: item.qty,
-                    unit: item.ingredients.unit,
-                    supplier: item.suppliers?.name || '',
-                    catatan: item.note || '',
-                    oleh: item.profiles?.email || ''
-                }));
-                exportToCSV(dataToExport, 'ledger_stok.csv');
-            } catch (error) {
-                showToast('Gagal mengekspor data.', 'error');
-                console.error(error);
-            }
-        });
+exportLedgerCsvBtn.addEventListener('click', async () => {
+  showToast('Mempersiapkan data ekspor...', 'info');
+  try {
+    let query = supabase
+      .from('stock_ledger')
+      .select(`
+        created_at,
+        ingredient_id,
+        qty,
+        ref_supplier,
+        note,
+        ingredients(name, unit),
+        suppliers:suppliers!stock_ledger_ref_supplier_fkey ( name )
+      `);
+
+    if (ledgerDateFrom.value)         query = query.gte('created_at', new Date(ledgerDateFrom.value).toISOString());
+    if (ledgerDateTo.value)           query = query.lte('created_at', new Date(ledgerDateTo.value).toISOString());
+    if (ledgerIngredientFilter.value) query = query.eq('ingredient_id', ledgerIngredientFilter.value);
+    // movement_type DI-CLIENT
+
+    const { data, error } = await query.order('created_at', { ascending: false });
+    if (error) throw error;
+
+    let rows = data || [];
+    if (ledgerMovementFilter.value) {
+      const wanted = ledgerMovementFilter.value;
+      rows = rows.filter(r => (r.movement_type ?? r.action ?? '') === wanted);
+    }
+
+    const dataToExport = rows.map(item => ({
+      waktu: formatDate(item.created_at),
+      pergerakan: (item.movement_type ?? item.action ?? ''),
+      bahan: item.ingredients.name,
+      qty: item.qty,
+      unit: item.ingredients.unit,
+      supplier: item.suppliers?.name || '',
+      catatan: item.note || '',
+      oleh: ''
+    }));
+
+    exportToCSV(dataToExport, 'ledger_stok.csv');
+  } catch (error) {
+    showToast('Gagal mengekspor data.', 'error');
+    console.error(error);
+  }
+});
+
     };
 
     // --- START THE APP ---
