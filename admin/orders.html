@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manajemen Pesanan | RestoAdmin</title>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="../shared/css/global.css">
+  <link rel="stylesheet" href="css/admin.css">
+
+  <!-- Fav / Meta optional -->
+  <meta name="theme-color" content="#F59E0B">
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1 class="logo">RestoAdmin</h1>
+      </div>
+      <nav class="sidebar-nav">
+        <ul>
+          <li><a href="/admin/">Dashboard</a></li>
+          <li><a href="/admin/pos.html">POS</a></li>
+          <li class="active"><a href="/admin/orders.html">Pesanan</a></li>
+          <li class="nav-group">
+            <span>Dapur</span>
+            <ul>
+              <li><a href="/admin/kds/hotline.html">KDS Hotline</a></li>
+              <li><a href="/admin/kds/drink.html">KDS Minuman</a></li>
+              <li><a href="/admin/kds/dessert.html">KDS Dessert</a></li>
+            </ul>
+          </li>
+          <li><a href="/admin/menu.html">Menu</a></li>
+          <li><a href="/admin/inventory.html">Inventaris</a></li>
+          <li><a href="/admin/reports.html">Laporan</a></li>
+          <li><a href="/admin/settings.html">Pengaturan</a></li>
+        </ul>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <span id="user-email">—</span>
+          <button id="logout-btn" class="btn">Logout</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main-content">
+      <header class="main-header">
+        <h2>Manajemen Pesanan</h2>
+        <div id="status-banner" class="status-banner">
+          <span id="connection-status" class="status-dot status-offline" title="Status Koneksi"></span>
+          Role: <strong id="user-role">...</strong>
+        </div>
+      </header>
+
+      <div class="content-area" id="content-area">
+        <!-- UI akan di-render dinamis oleh js/orders.js (toolbar, table, modal) -->
+        <div class="empty">Memuat data pesanan…</div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast container (UI helper) -->
+  <div id="toast-container"></div>
+
+  <!-- Libs -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Flowise (ganti apiHost di produksi, hindari localhost kalau bukan di mesin yang sama) -->
+  <script type="module">
+    import Chatbot from "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js"
+    Chatbot.init({
+      chatflowid: "61a905a8-9a85-43f5-8e81-9ca0bacf3eaa",
+      apiHost: "http://localhost:3000"
+    })
+  </script>
+
+  <!-- Halaman Orders logic -->
+  <script type="module" src="js/orders.js"></script>
+</body>
+</html>
