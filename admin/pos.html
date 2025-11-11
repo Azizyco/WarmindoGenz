@@ -6,11 +6,45 @@
     <title>POS | Resto Admin</title>
     <link rel="stylesheet" href="../shared/css/global.css">
     <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/pos.css">
 </head>
 <body>
-    <!-- Placeholder for POS page -->
-    <h1>Halaman Point of Sale (POS)</h1>
-    <a href="/admin/">Kembali ke Dashboard</a>
-    <p>Fitur POS akan diimplementasikan di sini.</p>
+        <div class="admin-layout">
+            <aside class="sidebar">
+                <div class="sidebar-header"><h1 class="logo">RestoAdmin</h1></div>
+                <nav class="sidebar-nav">
+                    <ul>
+                        <li><a href="/admin/">Dashboard</a></li>
+                        <li class="active"><a href="/admin/pos.html">POS</a></li>
+                        <li><a href="/admin/orders.html">Pesanan</a></li>
+                        <li><a href="/admin/menu.html">Menu</a></li>
+                        <li><a href="/admin/inventory.html">Inventaris</a></li>
+                        <li><a href="/admin/reports.html">Laporan</a></li>
+                        <li><a href="/admin/settings.html">Pengaturan</a></li>
+                    </ul>
+                </nav>
+                <div class="sidebar-footer">
+                    <div class="user-profile">
+                        <span id="user-email">—</span>
+                        <button id="logout-btn" class="btn">Logout</button>
+                    </div>
+                </div>
+            </aside>
+            <main class="main-content">
+                <header class="main-header">
+                    <h2>Point of Sale</h2>
+                    <div id="status-banner" class="status-banner">
+                        <span id="connection-status" class="status-dot status-offline" title="Status Koneksi"></span>
+                        Role: <strong id="user-role">...</strong>
+                    </div>
+                </header>
+                <div id="pos-root" class="content-area"><div class="empty">Memuat UI POS…</div></div>
+            </main>
+        </div>
+        <div id="toast-container"></div>
+        <!-- Supabase JS -->
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <!-- POS Logic -->
+    <script type="module" src="js/pos.js"></script>
 </body>
 </html>

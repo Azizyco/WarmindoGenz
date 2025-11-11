@@ -15,6 +15,7 @@ let canWrite = false;
 let chan = null;
 
 // === Utils
+const PROOF_BUCKET = 'payment-proofs';
 const rp = (n) => 'Rp ' + Number(n || 0).toLocaleString('id-ID');
 const short = (id='') => id.slice(0,8);
 const safe = (s='') => String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
@@ -128,6 +129,7 @@ function mountUI() {
             <th>Status</th>
             <th>Pemesan</th>
             <th class="right nowrap">Total</th>
+            <th class="nowrap">Bukti</th>
             <th class="nowrap">Aksi</th>
           </tr>
         </thead>
@@ -164,6 +166,7 @@ function mountUI() {
                 <input type="file" id="proof-file" accept="image/*">
                 <button class="btn" id="btn-upload-proof" ${canWrite ? '' : 'disabled'}>Upload Bukti</button>
               </div>
+              <div id="proof-preview" class="proof-preview" style="margin-top:.5rem"></div>
               <div style="margin-top:.75rem">
                 <button class="btn primary" id="btn-mark-paid" ${canWrite ? '' : 'disabled'}>Tandai Lunas</button>
                 <button class="btn ghost" id="btn-send-wa">Kirim Struk WA</button>
@@ -175,6 +178,21 @@ function mountUI() {
               <div id="status-actions"></div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal bukti (popup gambar/file) -->
+    <div id="proof-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="proof-modal-title">
+      <div class="modal-card" style="max-width:720px;">
+        <div class="modal-header">
+          <h3 id="proof-modal-title">Bukti Pembayaran</h3>
+          <div>
+            <button class="btn" id="proof-close">Tutup</button>
+          </div>
+        </div>
+        <div class="modal-body">
+          <div id="proof-content" style="display:flex;align-items:center;justify-content:center;min-height:200px"></div>
         </div>
       </div>
     </div>
@@ -269,7 +287,7 @@ async function fetchOrders() {
   const doFetch = () => {
     let query = supabase
       .from('orders')
-      .select('id, created_at, source, service_type, status, guest_name, contact, payment_method, total_amount, table_no')
+      .select('id, created_at, source, service_type, status, guest_name, contact, payment_method, total_amount, table_no, proof_url')
       .order('created_at', { ascending: false })
       .limit(200);
 
@@ -317,6 +335,7 @@ async function fetchOrders() {
       <div><strong>${safe(o.guest_name || '-')}</strong></div>${o.contact ? `<div class="muted" style="font-size:.85em">${safe(o.contact)}</div>` : ''}
       </td>
       <td class="right nowrap">${rp(o.total_amount)}</td>
+      <td class="nowrap">${o.proof_url ? `<button class="btn ghost" data-view-order-proof="${o.id}">Lihat</button>` : '<span class="muted">—</span>'}</td>
       <td class="nowrap">
         <div class="actions">
           <button class="btn" data-action="view" data-id="${o.id}">Lihat</button>
@@ -327,6 +346,73 @@ async function fetchOrders() {
     `;
     tbody.appendChild(tr);
   }
+}
+
+// Helper: resolve signed/public URL for proof
+async function resolveProofUrl(path) {
+  try {
+    if (!path) return '';
+    const p = String(path);
+    if (/^(https?:)?\/\//i.test(p) || p.startsWith('data:')) return p; // absolute/public URL
+    // If path accidentally contains full public storage URL for this bucket, allow direct open
+    if (p.includes('/storage/v1/object/public/')) return p;
+    const { data, error } = await supabase.storage.from(PROOF_BUCKET).createSignedUrl(p, 600);
+    if (error) {
+      console.warn('Signed URL error', error);
+      return '';
+    }
+    return data?.signedUrl || '';
+  } catch (e) {
+    console.error('resolveProofUrl failed', e);
+    return '';
+  }
+}
+
+async function openProof(path) {
+  const url = await resolveProofUrl(path);
+  if (!url) return showToast('Gagal membuka bukti', 'error');
+  window.open(url, '_blank');
+}
+
+function openProofModalWithUrl(url) {
+  const m = document.getElementById('proof-modal');
+  const box = document.getElementById('proof-content');
+  if (!m || !box) return window.open(url, '_blank');
+  box.innerHTML = '';
+  const clean = url.split('?')[0];
+  const isImg = /\.(png|jpe?g|gif|webp|svg)$/i.test(clean) || url.startsWith('data:image/');
+  if (isImg) {
+    const img = document.createElement('img');
+    img.src = url;
+    img.alt = 'Bukti pembayaran';
+    img.style.maxWidth = '100%';
+    img.style.border = '1px solid #e5e7eb';
+    img.style.borderRadius = '6px';
+    box.appendChild(img);
+  } else {
+    const a = document.createElement('a');
+    a.href = url; a.target = '_blank'; a.rel = 'noopener';
+    a.className = 'btn ghost';
+    a.textContent = 'Buka Bukti di Tab Baru';
+    box.appendChild(a);
+  }
+  m.classList.add('open');
+  document.body.classList.add('modal-open');
+}
+
+async function openProofModal(path) {
+  const url = await resolveProofUrl(path);
+  if (!url) return showToast('Gagal membuka bukti', 'error');
+  openProofModalWithUrl(url);
+}
+
+function closeProofModal() {
+  const m = document.getElementById('proof-modal');
+  if (!m) return;
+  m.classList.remove('open');
+  // Hanya hapus class modal-open bila tidak ada modal lain yang masih open
+  const anyOpen = document.querySelector('.modal.open');
+  if (!anyOpen) document.body.classList.remove('modal-open');
 }
 
 // === Detail modal
@@ -342,7 +428,7 @@ function closeModal() {
   document.body.classList.remove('modal-open');
 }
 
-// ambil detail pesanan (items, payments, totals)
+// ambil detail pesanan (items, totals)
 async function loadOrderDetail(orderId) {
   const cleanId = String(orderId).trim();
 
@@ -350,7 +436,7 @@ async function loadOrderDetail(orderId) {
   const { data: order, error: e1, status: s1 } = await withRetry(() =>
     supabase
       .from('orders')
-      .select('id, created_at, source, service_type, status, guest_name, contact, payment_method, table_no')
+      .select('id, created_at, source, service_type, status, guest_name, contact, payment_method, table_no, proof_url')
       .eq('id', cleanId).maybeSingle()
   );
   if (e1) throw e1;
@@ -363,14 +449,6 @@ async function loadOrderDetail(orderId) {
     .eq('order_id', cleanId)
     .order('id', { ascending: true });
   if (e2) throw e2;
-
-  // payments
-  const { data: pays, error: e3 } = await supabase
-    .from('payments')
-    .select('id, method, status, proof_url, created_at')
-    .eq('order_id', cleanId)
-    .order('created_at', { ascending: false });
-  if (e3) throw e3;
 
   // totals
   const { data: tot, error: e4 } = await supabase
@@ -395,7 +473,30 @@ async function loadOrderDetail(orderId) {
     </div>
     </div>
     <div class="kv"><div class="k">Pembayaran</div><div class="v">${safe(order.payment_method || '-')}</div></div>
+    <div class="kv"><div class="k">Bukti</div><div class="v">${order.proof_url ? `<button class="btn ghost" id="btn-view-order-proof">Lihat Bukti</button>` : '<span class="muted">Belum ada</span>'}</div></div>
   `;
+
+  // Render proof preview (image if possible)
+  const preview = document.getElementById('proof-preview');
+  if (preview) {
+    preview.innerHTML = '';
+    if (order.proof_url) {
+      const url = await resolveProofUrl(order.proof_url);
+      if (url) {
+        const clean = url.split('?')[0];
+        const isImg = /\.(png|jpe?g|gif|webp|svg)$/i.test(clean);
+        if (isImg) {
+          preview.innerHTML = `<img src="${url}" alt="Bukti pembayaran" style="max-width:100%;border:1px solid #e5e7eb;border-radius:6px">`;
+        } else {
+          preview.innerHTML = `<a href="${url}" target="_blank" class="btn ghost">Buka Bukti</a>`;
+        }
+      } else {
+        preview.innerHTML = '<div class="muted">Tidak dapat memuat preview bukti.</div>';
+      }
+    } else {
+      preview.innerHTML = '<div class="muted">Belum ada bukti.</div>';
+    }
+  }
 
   // Render items
   const tbody = document.getElementById('items');
@@ -416,23 +517,17 @@ async function loadOrderDetail(orderId) {
     tbody.appendChild(row);
   }
 
-  // Render payments
+  // Render pembayaran ringkas (tanpa tabel payments)
   const paysWrap = document.getElementById('pays');
-  paysWrap.innerHTML = (pays && pays.length) ? '' : '<div class="muted">Belum ada pembayaran.</div>';
-  for (const p of pays || []) {
-    const proofBtn = p.proof_url ? `<button class="btn ghost" data-view-proof="${p.proof_url}">Lihat Bukti</button>` : '';
-    const el = document.createElement('div');
-    el.className = 'kv';
-    el.innerHTML = `
-      <div class="k">${new Date(p.created_at).toLocaleString('id-ID')}</div>
-      <div class="v">
-        <span class="badge">${p.method}</span>
-        <span class="badge">${p.status}</span>
-        ${proofBtn}
-      </div>
-    `;
-    paysWrap.appendChild(el);
-  }
+  paysWrap.innerHTML = '';
+  const p1 = document.createElement('div');
+  p1.className = 'kv';
+  p1.innerHTML = `<div class="k">Metode</div><div class="v"><span class="badge">${safe(order.payment_method || '-')}</span></div>`;
+  paysWrap.appendChild(p1);
+  const p2 = document.createElement('div');
+  p2.className = 'kv';
+  p2.innerHTML = `<div class="k">Status</div><div class="v">${statusBadge(order.status)}</div>`;
+  paysWrap.appendChild(p2);
 
   // Render totals
   const totals = document.getElementById('totals');
@@ -466,11 +561,15 @@ async function loadOrderDetail(orderId) {
   document.querySelectorAll('[data-view-proof]').forEach(btn => {
     btn.addEventListener('click', async () => {
       const path = btn.getAttribute('data-view-proof');
-      const { data, error } = await supabase.storage.from('payment-proofs').createSignedUrl(path, 600);
-      if (error) return showToast('Gagal membuka bukti', 'error');
-      window.open(data.signedUrl, '_blank');
+      await openProof(path);
     });
   });
+  const orderProofBtn = document.getElementById('btn-view-order-proof');
+  if (orderProofBtn && order.proof_url) {
+    orderProofBtn.addEventListener('click', async () => {
+      await openProof(order.proof_url);
+    });
+  }
 
   // Bind buttons in modal
   const btnClose = document.getElementById('btn-close');
@@ -485,17 +584,16 @@ async function loadOrderDetail(orderId) {
     const file = document.getElementById('proof-file').files[0];
     if (!file) return showToast('Pilih file bukti dulu', 'warning');
     const path = `proofs/${order.id}/${Date.now()}_${file.name}`;
-    const up = await supabase.storage.from('payment-proofs').upload(path, file, { upsert:false });
+    const up = await supabase.storage.from(PROOF_BUCKET).upload(path, file, { upsert:false });
     if (up.error) return showToast('Upload gagal', 'error');
-    const { error } = await supabase.from('payments').insert({ order_id: order.id, method: order.payment_method || 'transfer', status: 'pending', proof_url: path });
-    if (error) showToast('Simpan pembayaran gagal', 'error'); else { showToast('Bukti diunggah', 'success'); loadOrderDetail(order.id); }
+    // Simpan ke kolom orders.proof_url (skema baru)
+    const { error } = await supabase.from('orders').update({ proof_url: path }).eq('id', order.id);
+    if (error) showToast('Gagal menyimpan bukti', 'error'); else { showToast('Bukti diunggah', 'success'); loadOrderDetail(order.id); fetchOrders(); }
   };
 
   const markBtn = document.getElementById('btn-mark-paid');
   markBtn.onclick = async () => {
     if (!canWrite) return;
-    const { error: ePay } = await supabase.from('payments').insert({ order_id: order.id, method: order.payment_method || 'cash', status: 'success' });
-    if (ePay) return showToast('Gagal menandai paid', 'error');
     const res = await setOrderStatus(order.id, 'paid');
     if (res.ok) { await loadOrderDetail(order.id); await fetchOrders(); }
   };
@@ -603,6 +701,17 @@ function bindEvents() {
   });
 
   document.getElementById('orders-tbody').addEventListener('click', async (e) => {
+    // Lihat bukti langsung dari tabel (kolom Bukti)
+    const proofBtn = e.target.closest('button[data-view-order-proof]');
+    if (proofBtn) {
+      const orderId = proofBtn.getAttribute('data-view-order-proof');
+      const { data: ord, error: eProof } = await supabase.from('orders').select('proof_url').eq('id', orderId).maybeSingle();
+      if (eProof) return showToast('Gagal ambil data bukti', 'error');
+      if (!ord?.proof_url) return showToast('Belum ada bukti', 'warning');
+      await openProofModal(ord.proof_url);
+      return;
+    }
+
     const btn = e.target.closest('button[data-action]');
     if (!btn) return;
     const id = String(btn.dataset.id || '').trim();
@@ -631,6 +740,8 @@ function bindEvents() {
       const res = await setOrderStatus(id, 'canceled');
       if (res.ok) await fetchOrders();
     }
+
+    // (handled at the top of handler)
   });
 
   const orderModalEl = document.getElementById('order-modal');
@@ -638,8 +749,19 @@ function bindEvents() {
     if (e.target === e.currentTarget) closeModal();
   });
 
+  const proofModalEl = document.getElementById('proof-modal');
+  proofModalEl.addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeProofModal();
+  });
+  const proofClose = document.getElementById('proof-close');
+  proofClose && (proofClose.onclick = closeProofModal);
+
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeModal();
+    if (e.key === 'Escape') {
+      const anyOpenProof = document.getElementById('proof-modal')?.classList.contains('open');
+      if (anyOpenProof) return closeProofModal();
+      closeModal();
+    }
   });
 
   logoutBtn && logoutBtn.addEventListener('click', async () => {
@@ -653,7 +775,6 @@ function setupRealtime() {
   if (chan) supabase.removeChannel(chan);
   chan = supabase.channel('orders-live')
     .on('postgres_changes', { event:'*', schema:'public', table:'orders' }, fetchOrdersDebounced)
-    .on('postgres_changes', { event:'*', schema:'public', table:'payments' }, fetchOrdersDebounced)
     .subscribe();
 }
 
