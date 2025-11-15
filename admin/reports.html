@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan | Resto Admin</title>
+    <link rel="stylesheet" href="../shared/css/global.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/reports.css">
+</head>
+<body>
+    <div class="admin-layout">  
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1 class="logo">RestoAdmin</h1>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="/admin/">Dashboard</a></li>
+                    <li><a href="/admin/pos.html">POS</a></li>
+                    <li><a href="/admin/orders.html">Pesanan</a></li>
+                    <li><a href="/admin/menu.html">Menu</a></li>
+                    <li><a href="/admin/inventory.html">Inventaris</a></li>
+                    <li class="active"><a href="/admin/reports.html">Laporan</a></li>
+                    <li><a href="/admin/settings.html">Pengaturan</a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <span id="user-email"></span>
+                    <button id="logout-btn">Logout</button>
+                </div>
+            </div>
+        </aside>
+        
+        <main class="main-content">
+            <header class="main-header">
+                <h2>Laporan Penjualan</h2>
+                <div id="status-banner" class="status-banner">
+                    <span id="connection-status" class="status-dot status-offline" title="Status Koneksi"></span>
+                </div>
+            </header>
+            
+            <div class="content-area">
+                <!-- Filter Section -->
+                <div class="filter-section">
+                    <div class="filter-group">
+                        <label>Periode</label>
+                        <div class="date-quick-filters">
+                            <button class="filter-btn active" data-range="today">Hari Ini</button>
+                            <button class="filter-btn" data-range="7days">7 Hari</button>
+                            <button class="filter-btn" data-range="30days">30 Hari</button>
+                            <button class="filter-btn" data-range="custom">Custom</button>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-group custom-date-range" style="display:none;">
+                        <label>Tanggal Mulai</label>
+                        <input type="date" id="start-date">
+                        <label>Tanggal Akhir</label>
+                        <input type="date" id="end-date">
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Metode Pembayaran</label>
+                        <select id="filter-payment">
+                            <option value="">Semua</option>
+                            <option value="cash">Cash</option>
+                            <option value="transfer">Transfer</option>
+                            <option value="qris">QRIS</option>
+                            <option value="ewallet">E-Wallet</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Tipe Layanan</label>
+                        <select id="filter-service">
+                            <option value="">Semua</option>
+                            <option value="dine-in">Dine-in</option>
+                            <option value="take-away">Take-away</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Status Order</label>
+                        <select id="filter-status">
+                            <option value="">Semua</option>
+                            <option value="paid">Paid</option>
+                            <option value="placed">Placed</option>
+                            <option value="preparing">Preparing</option>
+                            <option value="ready">Ready</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-primary" id="apply-filters">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="m21 21-4.35-4.35"/>
+                        </svg>
+                        Terapkan Filter
+                    </button>
+
+                    <button class="btn btn-secondary" id="reset-filters">Reset</button>
+                </div>
+
+                <!-- Tab Navigation -->
+                <div class="report-tabs">
+                    <button class="tab-btn active" data-tab="summary">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7"/>
+                            <rect x="14" y="3" width="7" height="7"/>
+                            <rect x="14" y="14" width="7" height="7"/>
+                            <rect x="3" y="14" width="7" height="7"/>
+                        </svg>
+                        Ringkasan
+                    </button>
+                    <button class="tab-btn" data-tab="transactions">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="1" x2="12" y2="23"/>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                        Transaksi
+                    </button>
+                    <button class="tab-btn" data-tab="items">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                            <line x1="12" y1="22.08" x2="12" y2="12"/>
+                        </svg>
+                        Per Item Menu
+                    </button>
+                </div>
+
+                <!-- Tab Content -->
+                <div class="report-content">
+                    <!-- Ringkasan Tab -->
+                    <div class="tab-content active" id="summary-tab">
+                        <!-- KPI Cards -->
+                        <div class="kpi-cards">
+                            <div class="kpi-card">
+                                <div class="kpi-icon revenue">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="12" y1="1" x2="12" y2="23"/>
+                                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                                    </svg>
+                                </div>
+                                <div class="kpi-content">
+                                    <div class="kpi-label">Total Pendapatan</div>
+                                    <div class="kpi-value" id="kpi-revenue">Rp 0</div>
+                                </div>
+                            </div>
+
+                            <div class="kpi-card">
+                                <div class="kpi-icon orders">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                                        <line x1="3" y1="6" x2="21" y2="6"/>
+                                        <path d="M16 10a4 4 0 0 1-8 0"/>
+                                    </svg>
+                                </div>
+                                <div class="kpi-content">
+                                    <div class="kpi-label">Jumlah Transaksi</div>
+                                    <div class="kpi-value" id="kpi-orders">0</div>
+                                </div>
+                            </div>
+
+                            <div class="kpi-card">
+                                <div class="kpi-icon items">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="9" cy="21" r="1"/>
+                                        <circle cx="20" cy="21" r="1"/>
+                                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                                    </svg>
+                                </div>
+                                <div class="kpi-content">
+                                    <div class="kpi-label">Total Item Terjual</div>
+                                    <div class="kpi-value" id="kpi-items">0</div>
+                                </div>
+                            </div>
+
+                            <div class="kpi-card">
+                                <div class="kpi-icon aov">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="12" y1="20" x2="12" y2="10"/>
+                                        <line x1="18" y1="20" x2="18" y2="4"/>
+                                        <line x1="6" y1="20" x2="6" y2="16"/>
+                                    </svg>
+                                </div>
+                                <div class="kpi-content">
+                                    <div class="kpi-label">Rata-rata Nilai Order (AOV)</div>
+                                    <div class="kpi-value" id="kpi-aov">Rp 0</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Charts -->
+                        <div class="charts-row">
+                            <div class="chart-card">
+                                <div class="chart-header">
+                                    <h3>Pendapatan per Hari</h3>
+                                </div>
+                                <canvas id="revenue-chart"></canvas>
+                            </div>
+
+                            <div class="chart-card">
+                                <div class="chart-header">
+                                    <h3>Breakdown Metode Pembayaran</h3>
+                                </div>
+                                <canvas id="payment-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Transaksi Tab -->
+                    <div class="tab-content" id="transactions-tab">
+                        <div class="table-controls">
+                            <input type="text" id="search-transaction" placeholder="Cari kode pembayaran / kontak...">
+                            <button class="btn btn-primary" id="export-transactions">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="7 10 12 15 17 10"/>
+                                    <line x1="12" y1="15" x2="12" y2="3"/>
+                                </svg>
+                                Ekspor CSV
+                            </button>
+                        </div>
+
+                        <div class="table-container">
+                            <table class="data-table" id="transactions-table">
+                                <thead>
+                                    <tr>
+                                        <th data-sort="order_date">Tanggal <span class="sort-icon">↕</span></th>
+                                        <th data-sort="payment_code">Kode Pembayaran <span class="sort-icon">↕</span></th>
+                                        <th data-sort="service_type">Layanan <span class="sort-icon">↕</span></th>
+                                        <th data-sort="payment_method">Metode Bayar <span class="sort-icon">↕</span></th>
+                                        <th data-sort="total_qty">Qty <span class="sort-icon">↕</span></th>
+                                        <th data-sort="total_amount">Total <span class="sort-icon">↕</span></th>
+                                        <th data-sort="status">Status <span class="sort-icon">↕</span></th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="transactions-list">
+                                    <tr>
+                                        <td colspan="8" class="text-center">Memuat data...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="pagination" id="transactions-pagination"></div>
+                    </div>
+
+                    <!-- Per Item Menu Tab -->
+                    <div class="tab-content" id="items-tab">
+                        <div class="table-controls">
+                            <input type="text" id="search-item" placeholder="Cari nama menu...">
+                            <button class="btn btn-primary" id="export-items">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="7 10 12 15 17 10"/>
+                                    <line x1="12" y1="15" x2="12" y2="3"/>
+                                </svg>
+                                Ekspor CSV
+                            </button>
+                        </div>
+
+                        <!-- Top Menu Chart -->
+                        <div class="chart-card" style="margin-bottom: 2rem;">
+                            <div class="chart-header">
+                                <h3>Top 10 Menu Terlaris</h3>
+                            </div>
+                            <canvas id="top-items-chart"></canvas>
+                        </div>
+
+                        <div class="table-container">
+                            <table class="data-table" id="items-table">
+                                <thead>
+                                    <tr>
+                                        <th data-sort="menu_name">Nama Menu <span class="sort-icon">↕</span></th>
+                                        <th data-sort="total_qty">Total Qty <span class="sort-icon">↕</span></th>
+                                        <th data-sort="total_revenue">Total Revenue <span class="sort-icon">↕</span></th>
+                                        <th data-sort="avg_price">Harga Rata-rata <span class="sort-icon">↕</span></th>
+                                        <th data-sort="contribution_pct">Kontribusi <span class="sort-icon">↕</span></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="items-list">
+                                    <tr>
+                                        <td colspan="5" class="text-center">Memuat data...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="pagination" id="items-pagination"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Detail Order -->
+    <div id="order-detail-modal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3>Detail Transaksi</h3>
+                <button class="modal-close" onclick="closeOrderDetailModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="order-detail-content">
+                <div class="loading">Memuat...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module" src="../shared/js/supabase.js"></script>
+    <script type="module" src="../shared/js/auth.js"></script>
+    <script type="module" src="../shared/js/ui.js"></script>
+    <script type="module" src="js/reports.js"></script>
+</body>
+</html>

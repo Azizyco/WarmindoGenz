@@ -768,6 +768,56 @@ function bindEvents() {
     await supabase.auth.signOut();
     location.reload();
   });
+
+  // Rekap Penjualan -> panggil RPC di DB lalu redirect ke laporan
+  const btnRekap = document.getElementById('btn-rekap');
+  if (btnRekap) {
+    btnRekap.addEventListener('click', async () => {
+      try {
+        if (!canWrite) {
+          showToast('Peran Anda tidak diizinkan mengeksekusi rekap.', 'warning');
+          return;
+        }
+        // Ambil rentang dari filter, default ke hari ini
+        const fromEl = document.getElementById('f-from');
+        const toEl = document.getElementById('f-to');
+        const today = new Date();
+        const y = today.getFullYear();
+        const m = String(today.getMonth() + 1).padStart(2, '0');
+        const d = String(today.getDate()).padStart(2, '0');
+        const todayStr = `${y}-${m}-${d}`;
+        const p_from = (fromEl?.value) || todayStr;
+        const p_to = (toEl?.value) || todayStr;
+
+        if (!confirm(`Jalankan rekap penjualan untuk ${p_from} s/d ${p_to}?`)) return;
+        btnRekap.disabled = true;
+        btnRekap.textContent = 'Memproses…';
+        showToast('Memproses rekap penjualan…', 'info');
+
+        // Status yang disertakan saat rekap. Anda bisa ubah di sisi DB jika perlu.
+        const statuses = ['placed','paid'];
+
+        // Panggil RPC di database (Postgres function) agar agregasi dilakukan di server
+        const { error: rpcError } = await supabase.rpc('rekap_sales', {
+          p_from,
+          p_to,
+          p_statuses: statuses
+        });
+        if (rpcError) throw rpcError;
+
+        showToast('Rekap selesai. Membuka halaman laporan…', 'success');
+        // Arahkan ke laporan dengan range custom sesuai yang direkap
+        const url = `/admin/reports.html?tab=summary&range=custom&start=${encodeURIComponent(p_from)}&end=${encodeURIComponent(p_to)}`;
+        window.location.href = url;
+      } catch (err) {
+        console.error('Rekap penjualan gagal', err);
+        showToast(err?.message || 'Gagal menjalankan rekap penjualan', 'error');
+      } finally {
+        btnRekap.disabled = false;
+        btnRekap.textContent = 'Rekap Penjualan';
+      }
+    });
+  }
 }
 
 // === Realtime

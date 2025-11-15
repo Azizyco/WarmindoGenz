@@ -11,6 +11,7 @@ function logSupabaseError(context, error) {
 
 let currentUser = null;
 let allRoles = [];
+const PAYMENT_BUCKET = 'payment-config';
 
 // Initialize page safely regardless of DOMContentLoaded timing
 async function initSettingsPage() {
@@ -142,7 +143,7 @@ function renderEwalletData(data) {
 function renderQrisData(data) {
     const container = document.getElementById('qris-data');
     const imagePath = data.image_path || '';
-    const imageUrl = imagePath ? `${supabase.storage.from('payment-images').getPublicUrl(imagePath).data.publicUrl}` : '';
+    const imageUrl = imagePath ? `${supabase.storage.from(PAYMENT_BUCKET).getPublicUrl(imagePath).data.publicUrl}` : '';
     
     container.innerHTML = `
         <div class="payment-info">
@@ -223,9 +224,15 @@ window.editPayment = async function(key) {
                     <input type="text" id="payment-caption" value="${value.caption || ''}" required>
                 </div>
                 <div class="form-group">
-                    <label>Path Gambar QRIS *</label>
-                    <input type="text" id="payment-image-path" value="${value.image_path || ''}" required>
-                    <small class="text-muted">Contoh: qris/merchant_qr.png</small>
+                    <label>Gambar QRIS</label>
+                    <input type="file" id="payment-image-file" accept="image/*">
+                    ${value.image_path ? `<div style="margin-top:.5rem"><img id="payment-image-preview" src="${supabase.storage.from(PAYMENT_BUCKET).getPublicUrl(value.image_path).data.publicUrl}" alt="Preview QRIS" style="max-width:180px;border:1px solid #eee;border-radius:6px;padding:4px;"/></div>` : `<img id="payment-image-preview" style="display:none;max-width:180px;border:1px solid #eee;border-radius:6px;padding:4px;"/>`}
+                    <small class="text-muted">Pilih file untuk mengganti gambar. Jika tidak dipilih, path di bawah akan digunakan.</small>
+                </div>
+                <div class="form-group">
+                    <label>Path Gambar QRIS</label>
+                    <input type="text" id="payment-image-path" value="${value.image_path || ''}" placeholder="qris/merchant_qr.png">
+                    <small class="text-muted">Opsional. Akan diisi otomatis saat upload file.</small>
                 </div>
             `;
         } else if (key === 'payment.transfer') {
@@ -274,9 +281,31 @@ document.getElementById('payment-form').addEventListener('submit', async (e) => 
             number: document.getElementById('payment-number').value
         };
     } else if (key === 'payment.qris') {
+        // Handle optional file upload to Supabase Storage
+        const caption = document.getElementById('payment-caption').value;
+        const fileInput = document.getElementById('payment-image-file');
+        let imagePath = document.getElementById('payment-image-path').value?.trim();
+
+        try {
+            if (fileInput && fileInput.files && fileInput.files[0]) {
+                const file = fileInput.files[0];
+                const ext = file.name.split('.').pop();
+                const filename = `qris/${currentUser?.id || 'admin'}-${Date.now()}.${ext}`;
+                const { error: uploadError } = await supabase
+                    .storage
+                    .from(PAYMENT_BUCKET)
+                    .upload(filename, file, { upsert: true, cacheControl: '3600' });
+                if (uploadError) throw uploadError;
+                imagePath = filename;
+            }
+        } catch (err) {
+            logSupabaseError('Upload QRIS', err);
+            return;
+        }
+
         newValue = {
-            caption: document.getElementById('payment-caption').value,
-            image_path: document.getElementById('payment-image-path').value
+            caption,
+            image_path: imagePath || null
         };
     } else if (key === 'payment.transfer') {
         newValue = {
@@ -304,6 +333,19 @@ document.getElementById('payment-form').addEventListener('submit', async (e) => 
     } catch (error) {
         console.error('Error updating payment:', error);
         showToast('Gagal memperbarui pengaturan pembayaran', 'error');
+    }
+});
+
+// Live preview for QRIS image when selecting a file
+document.addEventListener('change', (e) => {
+    if (e.target && e.target.id === 'payment-image-file') {
+        const input = e.target;
+        const preview = document.getElementById('payment-image-preview');
+        if (input.files && input.files[0] && preview) {
+            const url = URL.createObjectURL(input.files[0]);
+            preview.src = url;
+            preview.style.display = 'inline-block';
+        }
     }
 });
 
