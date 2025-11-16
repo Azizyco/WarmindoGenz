@@ -258,6 +258,55 @@ body {
     background-color: #e5e7eb; /* gray-200 */
 }
 
+/* === Generic modal overlay for admin pages (menu, inventory, etc.) === */
+body.modal-open {
+    overflow: hidden;
+}
+
+/* Backdrop overlay */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(17, 24, 39, 0.6);
+    display: none;              /* JS will set to flex when opening */
+    justify-content: center;    /* center horizontally */
+    align-items: center;        /* center vertically (short dialogs) */
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+    overflow-y: auto;           /* allow scroll when modal taller than viewport */
+}
+
+/* Override any global ID styles for the menu modal overlay */
+#menu-item-modal.modal-overlay {
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important; /* remove global padding that shifts centering */
+}
+
+/* Actual modal card inside overlay */
+.modal-overlay .modal-card {
+    background: #ffffff !important; /* solid white */
+    border-radius: 12px;
+    width: 100%;
+    max-width: 560px;               /* dialog width */
+    max-height: calc(100vh - 80px); /* breathing space top/bottom */
+    margin: 40px 24px;              /* ensures visual centering & side padding */
+    padding: 24px;
+    overflow-y: auto;
+    box-shadow: 0 28px 56px rgba(15, 23, 42, 0.35);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    animation: modal-fade-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Menu page specific modal (kept for clarity/extension) */
+.menu-modal-overlay .menu-modal {
+    background: #ffffff;
+    border-radius: 12px;
+}
+
 .loading-indicator, .empty-state {
     padding: 4rem 2rem;
     text-align: center;
@@ -274,19 +323,7 @@ body {
     font-weight: 500;
 }
 
-/* Modal Styles */
-.modal-overlay {
-    position: fixed;
-    inset: 0;
-    background-color: rgba(17, 24, 39, 0.6);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    backdrop-filter: blur(4px);
-}
-
-/* sesudah — masih di blok yang sama (± baris 200-an) */
+/* Modal card layout (used in some screens) */
 .modal .modal-card {
     background: var(--card);
     border-radius: 12px;
@@ -371,10 +408,7 @@ body {
         /* On smaller screens, you might want a collapsible sidebar */
         width: 60px;
     }
-    .sidebar-header .logo, .sidebar-nav a span, .sidebar-footer {
-        /* Hide text, show icons only */
-        /* display: none; */
-    }
+    /* text/icon tweaks can be added here if needed */
 }
 /* === ORDERS PAGE === */
 
