@@ -266,7 +266,9 @@ async function submitOrder() {
       table_no: currentType === 'dine_in' ? (tableNo || null) : null,
       payment_method: paymentMethod,
       total_amount: totals.grandTotal,
-      source: 'pos',
+      // NOTE: constraint orders_session_or_pos currently enforces source = 'web'
+      // To satisfy it without changing DB, we use 'web' here.
+      source: 'web',
       guest_name: guestName || null,
       contact: contact || null,
       note: orderNote || null,

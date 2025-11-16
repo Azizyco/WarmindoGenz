@@ -298,7 +298,15 @@ function updateFiltersFromForm() {
     }
     
     filters.paymentMethod = document.getElementById('filter-payment').value;
-    filters.serviceType = document.getElementById('filter-service').value;
+    // Normalise service type to match enum order_service_type values (dine_in/takeaway)
+    const svcRaw = document.getElementById('filter-service').value;
+    if (svcRaw === 'dine-in') {
+        filters.serviceType = 'dine_in';
+    } else if (svcRaw === 'take-away') {
+        filters.serviceType = 'takeaway';
+    } else {
+        filters.serviceType = svcRaw;
+    }
     filters.status = document.getElementById('filter-status').value;
 }
 

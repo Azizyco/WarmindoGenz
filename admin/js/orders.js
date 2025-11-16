@@ -288,6 +288,7 @@ async function fetchOrders() {
     let query = supabase
       .from('orders')
       .select('id, created_at, source, service_type, status, guest_name, contact, payment_method, total_amount, table_no, proof_url')
+      .eq('is_archived', false)
       .order('created_at', { ascending: false })
       .limit(200);
 

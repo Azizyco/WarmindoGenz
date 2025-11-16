@@ -12,16 +12,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     const userEmailEl = document.getElementById('user-email');
     if(userEmailEl) userEmailEl.textContent = user.email;
 
-    const logoutBtn = document.getElementById('logout-btn');
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) {
     logoutBtn.addEventListener('click', async () => {
-        await staffLogout();
-        showToast('Anda telah logout.', 'info');
-        window.location.replace('/admin/login.html');
+      await staffLogout();
+      showToast('Anda telah logout.', 'info');
+      window.location.replace('/admin/login.html');
     });
-        const statusBanner = {
-        connection: document.getElementById('connection-status'),
-        role: document.getElementById('user-role'),
-    }
+  }
+
+  const statusBanner = {
+    connection: document.getElementById('connection-status'),
+    role: document.getElementById('user-role'),
+  };
     
     // Menampilkan role pengguna
 // Menampilkan role pengguna (tahan banting, tanpa join dulu)
@@ -83,18 +86,21 @@ async function getUserRole() {
     
     getUserRole();
     
-    // Memeriksa status koneksi
-    function updateConnectionStatus() {
-        if (navigator.onLine) {
-            statusBanner.connection.classList.remove('status-offline');
-            statusBanner.connection.classList.add('status-online');
-            statusBanner.connection.title = 'Online';
-        } else {
-            statusBanner.connection.classList.remove('status-online');
-            statusBanner.connection.classList.add('status-offline');
-            statusBanner.connection.title = 'Offline';
-        }
+  // Memeriksa status koneksi (aman meski elemen tidak ada di halaman)
+  function updateConnectionStatus() {
+    const connEl = statusBanner.connection || document.getElementById('connection-status');
+    if (!connEl) return; // jika halaman tidak punya indikator koneksi, jangan apa-apa
+
+    if (navigator.onLine) {
+      connEl.classList.remove('status-offline');
+      connEl.classList.add('status-online');
+      connEl.title = 'Online';
+    } else {
+      connEl.classList.remove('status-online');
+      connEl.classList.add('status-offline');
+      connEl.title = 'Offline';
     }
+  }
     
     // Menjalankan pemeriksaan koneksi saat halaman dimuat
     updateConnectionStatus();

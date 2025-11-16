@@ -20,7 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveBtn = document.getElementById('save-btn');
 
     let categories = [];
-    const placeholderImage = 'https://via.placeholder.com/150';
+    // Gunakan placeholder lokal agar tidak bergantung ke domain eksternal
+    const placeholderImage = '/shared/img/menu-placeholder.png';
 
     // Helper untuk mendapatkan path file dari URL Supabase Storage
     const getPathFromUrl = (url) => {
@@ -152,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td class="item-info">
-                    <img src="${item.photo_url || 'https://via.placeholder.com/100'}" alt="${item.name}" class="item-thumbnail">
+                    <img src="${item.photo_url || placeholderImage}" alt="${item.name}" class="item-thumbnail">
                     <div>
                         <span class="item-name">${item.name}</span>
                         <span class="item-description">${item.description ? (item.description.length > 40 ? item.description.substring(0, 40) + '...' : item.description) : ''}</span>
