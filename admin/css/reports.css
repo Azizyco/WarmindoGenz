@@ -71,11 +71,27 @@
     display: none;
     flex-direction: row;
     gap: 1rem;
-    align-items: center;
+    align-items: flex-end;
+    flex-wrap: wrap;
 }
 
-.custom-date-range.show {
-    display: flex;
+.custom-date-range .filter-group {
+    min-width: 150px;
+}
+
+.custom-date-range input[type="date"] {
+    padding: 0.625rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    background-color: var(--bg);
+    color: var(--ink);
+    min-width: 150px;
+}
+
+.custom-date-range input[type="date"]:focus {
+    outline: none;
+    border-color: var(--primary);
 }
 
 /* Report Tabs */
@@ -379,7 +395,8 @@
     color: #1565c0;
 }
 
-.status-badge.preparing {
+.status-badge.preparing,
+.status-badge.prep {
     background-color: #fff3e0;
     color: #e65100;
 }
@@ -394,9 +411,21 @@
     color: #00796b;
 }
 
-.status-badge.cancelled {
+.status-badge.cancelled,
+.status-badge.canceled {
     background-color: #ffebee;
     color: #c62828;
+}
+
+/* Additional statuses */
+.status-badge.confirmed {
+    background-color: #e3f2fd;
+    color: #1e88e5;
+}
+
+.status-badge.served {
+    background-color: #e8eaf6;
+    color: #3949ab;
 }
 
 /* Payment Method Badges */

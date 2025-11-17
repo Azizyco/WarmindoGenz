@@ -47,18 +47,22 @@
                     <div class="filter-group">
                         <label>Periode</label>
                         <div class="date-quick-filters">
-                            <button class="filter-btn active" data-range="today">Hari Ini</button>
+                            <button class="filter-btn" data-range="today">Hari Ini</button>
                             <button class="filter-btn" data-range="7days">7 Hari</button>
-                            <button class="filter-btn" data-range="30days">30 Hari</button>
+                            <button class="filter-btn active" data-range="30days">30 Hari</button>
                             <button class="filter-btn" data-range="custom">Custom</button>
                         </div>
                     </div>
                     
-                    <div class="filter-group custom-date-range" style="display:none;">
-                        <label>Tanggal Mulai</label>
-                        <input type="date" id="start-date">
-                        <label>Tanggal Akhir</label>
-                        <input type="date" id="end-date">
+                    <div class="custom-date-range" style="display:none;">
+                        <div class="filter-group">
+                            <label>Tanggal Mulai</label>
+                            <input type="date" id="start-date">
+                        </div>
+                        <div class="filter-group">
+                            <label>Tanggal Akhir</label>
+                            <input type="date" id="end-date">
+                        </div>
                     </div>
 
                     <div class="filter-group">
@@ -85,12 +89,14 @@
                         <label>Status Order</label>
                         <select id="filter-status">
                             <option value="">Semua</option>
-                            <option value="paid">Paid</option>
-                            <option value="placed">Placed</option>
-                            <option value="preparing">Preparing</option>
-                            <option value="ready">Ready</option>
-                            <option value="completed">Completed</option>
-                            <option value="cancelled">Cancelled</option>
+                            <option value="placed">Dipesan</option>
+                            <option value="paid">Lunas</option>
+                            <option value="confirmed">Dikonfirmasi</option>
+                            <option value="prep">Disiapkan</option>
+                            <option value="ready">Siap</option>
+                            <option value="served">Tersaji</option>
+                            <option value="completed">Selesai</option>
+                            <option value="canceled">Dibatalkan</option>
                         </select>
                     </div>
 

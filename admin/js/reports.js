@@ -35,6 +35,17 @@ let itemsPagination = {
     searchQuery: ''
 };
 
+// ====== NORMALIZATION HELPERS ======
+function normalizeStatus(value) {
+    if (!value) return value;
+    const map = {
+        preparing: 'prep',
+        cancelled: 'canceled',
+        processing: 'confirmed' // legacy alias if any
+    };
+    return map[value] || value;
+}
+
 // Initialize page
 document.addEventListener('DOMContentLoaded', async () => {
     await checkAuth();
@@ -180,12 +191,47 @@ function initializeFilters() {
             filters.dateRange = range;
 
             if (range === 'custom') {
-                document.querySelector('.custom-date-range').classList.add('show');
+                document.querySelector('.custom-date-range').style.display = 'flex';
+                // Prefill with current filter dates or today
+                const sd = document.getElementById('start-date');
+                const ed = document.getElementById('end-date');
+                const todayStr = formatDate(new Date());
+                if (!sd.value) sd.value = filters.startDate || todayStr;
+                if (!ed.value) ed.value = filters.endDate || todayStr;
+                // Update filters from inputs
+                filters.startDate = sd.value;
+                filters.endDate = ed.value;
             } else {
-                document.querySelector('.custom-date-range').classList.remove('show');
+                document.querySelector('.custom-date-range').style.display = 'none';
                 setDefaultDateRange();
             }
         });
+    });
+
+    // Custom date inputs: update filters immediately when changed
+    const startInput = document.getElementById('start-date');
+    const endInput = document.getElementById('end-date');
+    startInput?.addEventListener('change', (e) => {
+        filters.startDate = e.target.value;
+        if (!endInput.value) {
+            endInput.value = e.target.value;
+            filters.endDate = e.target.value;
+        }
+        // Ensure custom mode active
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector('[data-range="custom"]')?.classList.add('active');
+        filters.dateRange = 'custom';
+    });
+    endInput?.addEventListener('change', (e) => {
+        filters.endDate = e.target.value;
+        if (!startInput.value) {
+            startInput.value = e.target.value;
+            filters.startDate = e.target.value;
+        }
+        // Ensure custom mode active
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector('[data-range="custom"]')?.classList.add('active');
+        filters.dateRange = 'custom';
     });
 
     // Apply filters button
@@ -307,7 +353,7 @@ function updateFiltersFromForm() {
     } else {
         filters.serviceType = svcRaw;
     }
-    filters.status = document.getElementById('filter-status').value;
+    filters.status = normalizeStatus(document.getElementById('filter-status').value);
 }
 
 function buildFilterQuery(query) {
@@ -1141,14 +1187,19 @@ function formatPaymentMethod(method) {
 
 function formatStatus(status) {
     const statuses = {
-        'paid': 'Paid',
-        'placed': 'Placed',
-        'preparing': 'Preparing',
-        'ready': 'Ready',
-        'completed': 'Completed',
-        'cancelled': 'Cancelled'
+        placed: 'Dipesan',
+        paid: 'Lunas',
+        confirmed: 'Dikonfirmasi',
+        prep: 'Disiapkan',
+        ready: 'Siap',
+        served: 'Tersaji',
+        completed: 'Selesai',
+        canceled: 'Dibatalkan'
     };
-    return statuses[status] || status;
+    // Also handle legacy synonyms gracefully
+    const legacyMap = { preparing: 'prep', cancelled: 'canceled' };
+    const canon = legacyMap[status] || status;
+    return statuses[canon] || canon;
 }
 
 // Close modal on outside click
