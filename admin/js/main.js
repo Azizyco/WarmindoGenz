@@ -110,5 +110,134 @@ async function getUserRole() {
     window.addEventListener('offline', updateConnectionStatus);
     
     console.log('Admin dashboard loaded for user:', user.email);
-    // TODO: Implement RBAC based on user profile
+    
+    // Load dashboard stats
+    loadDashboardStats();
+    
+    // Setup tour modal
+    setupTourModal();
 });
+
+// ==================== DASHBOARD STATS ====================
+
+async function loadDashboardStats() {
+    const today = new Date().toISOString().split('T')[0];
+    
+    try {
+        // Orders today
+        const { data: ordersToday, error: e1 } = await supabase
+            .from('orders')
+            .select('id, total_amount', { count: 'exact' })
+            .gte('created_at', today + 'T00:00:00')
+            .lte('created_at', today + 'T23:59:59');
+        
+        if (!e1 && ordersToday) {
+            document.getElementById('stat-orders-today').textContent = ordersToday.length;
+            
+            // Revenue today
+            const revenue = ordersToday.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+            document.getElementById('stat-revenue-today').textContent = formatCurrency(revenue);
+        }
+    } catch (err) {
+        console.warn('Error loading orders stats:', err);
+    }
+    
+    try {
+        // Total menus
+        const { count: menuCount } = await supabase
+            .from('menus')
+            .select('*', { count: 'exact', head: true });
+        
+        document.getElementById('stat-menu-count').textContent = menuCount || 0;
+    } catch (err) {
+        console.warn('Error loading menu count:', err);
+    }
+    
+    try {
+        // Available tables
+        const { data: tables } = await supabase
+            .from('tables')
+            .select('status')
+            .eq('status', 'empty');
+        
+        document.getElementById('stat-tables-available').textContent = tables?.length || 0;
+    } catch (err) {
+        console.warn('Error loading tables stats:', err);
+    }
+}
+
+function formatCurrency(amount) {
+    return 'Rp ' + (amount || 0).toLocaleString('id-ID', { minimumFractionDigits: 0 });
+}
+
+// ==================== TOUR MODAL ====================
+
+function setupTourModal() {
+    const modal = document.getElementById('tour-modal');
+    const startBtn = document.getElementById('start-tour-btn');
+    const closeBtn = document.getElementById('tour-close');
+    const prevBtn = document.getElementById('tour-prev');
+    const nextBtn = document.getElementById('tour-next');
+    const stepIndicator = document.getElementById('tour-step-indicator');
+    
+    let currentStep = 0;
+    const totalSteps = 6;
+    
+    function showStep(step) {
+        // Hide all steps
+        document.querySelectorAll('.tour-step').forEach(el => el.style.display = 'none');
+        
+        // Show current step
+        const stepEl = document.querySelector(`.tour-step[data-step="${step}"]`);
+        if (stepEl) stepEl.style.display = 'block';
+        
+        // Update indicator
+        stepIndicator.textContent = `${step + 1} / ${totalSteps}`;
+        
+        // Update buttons
+        prevBtn.style.display = step === 0 ? 'none' : 'inline-block';
+        nextBtn.textContent = step === totalSteps - 1 ? 'Selesai' : 'Selanjutnya →';
+        
+        currentStep = step;
+    }
+    
+    function openTour() {
+        modal.classList.add('active');
+        document.body.classList.add('modal-open');
+        showStep(0);
+    }
+    
+    function closeTour() {
+        modal.classList.remove('active');
+        document.body.classList.remove('modal-open');
+    }
+    
+    startBtn?.addEventListener('click', openTour);
+    closeBtn?.addEventListener('click', closeTour);
+    
+    prevBtn?.addEventListener('click', () => {
+        if (currentStep > 0) showStep(currentStep - 1);
+    });
+    
+    nextBtn?.addEventListener('click', () => {
+        if (currentStep < totalSteps - 1) {
+            showStep(currentStep + 1);
+        } else {
+            closeTour();
+        }
+    });
+    
+    // Close on outside click
+    modal?.addEventListener('click', (e) => {
+        if (e.target === modal) closeTour();
+    });
+    
+    // Check if first visit (optional: auto-show tour)
+    const hasSeenTour = localStorage.getItem('warmindoGenZTourSeen');
+    if (!hasSeenTour) {
+        setTimeout(() => {
+            openTour();
+            localStorage.setItem('warmindoGenZTourSeen', 'true');
+        }, 1000);
+    }
+}

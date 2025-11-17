@@ -11,7 +11,7 @@
     <div class="admin-layout">  
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h1 class="logo">RestoAdmin</h1>
+                <h1 class="logo">WarmindoGenZ</h1>
             </div>
             <nav class="sidebar-nav">
                 <ul>
@@ -40,24 +40,282 @@
                 </div>
             </header>
             <div class="content-area" id="content-area">
-                <!-- Konten dinamis akan dimuat di sini -->
-                <p>Selamat datang di dasbor admin. Silakan pilih menu di samping untuk memulai.</p>
+                <!-- Hero Welcome Section -->
+                <div class="dashboard-hero">
+                    <div class="hero-content">
+                        <h1>Selamat Datang di WarmindoGenZ 👋</h1>
+                        <p>Sistem manajemen restoran lengkap untuk operasional harian Anda</p>
+                    </div>
+                    <div class="hero-illustration">
+                        <svg viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="50" y="50" width="300" height="200" rx="10" fill="#667eea" opacity="0.1"/>
+                            <rect x="70" y="80" width="120" height="80" rx="8" fill="#667eea" opacity="0.3"/>
+                            <rect x="210" y="80" width="120" height="80" rx="8" fill="#764ba2" opacity="0.3"/>
+                            <circle cx="130" cy="200" r="30" fill="#f093fb" opacity="0.5"/>
+                            <circle cx="270" cy="200" r="30" fill="#4facfe" opacity="0.5"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="quick-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                                <line x1="3" y1="6" x2="21" y2="6"/>
+                                <path d="M16 10a4 4 0 0 1-8 0"/>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Pesanan Hari Ini</div>
+                            <div class="stat-value" id="stat-orders-today">-</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                <line x1="12" y1="1" x2="12" y2="23"/>
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Pendapatan Hari Ini</div>
+                            <div class="stat-value" id="stat-revenue-today">Rp 0</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                                <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                                <line x1="12" y1="22.08" x2="12" y2="12"/>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Total Menu</div>
+                            <div class="stat-value" id="stat-menu-count">-</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                <line x1="3" y1="9" x2="21" y2="9"/>
+                                <line x1="9" y1="21" x2="9" y2="9"/>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Meja Tersedia</div>
+                            <div class="stat-value" id="stat-tables-available">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Flow Section -->
+                <div class="user-flow-section">
+                    <h3>Alur Kerja Sistem</h3>
+                    <p class="text-muted">Urutan penggunaan sistem: (1) Admin melakukan setup awal: metode bayar, meja, menu, dan akun akses. (2) Kasir membuat pesanan di POS (pilih menu, tipe layanan, proses pembayaran & unggah bukti jika non-tunai). (3) Dapur/front-line mengelola progres status pesanan sampai selesai. (4) Sistem merekap otomatis ke Laporan untuk analisa penjualan & performa menu. (5) Manajemen melakukan evaluasi dan penyesuaian melalui Pengaturan & Laporan.</p>
+                    
+                    <div class="flow-diagram">
+                        <div class="flow-step">
+                            <div class="flow-icon">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="9" cy="21" r="1"/>
+                                    <circle cx="20" cy="21" r="1"/>
+                                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                                </svg>
+                            </div>
+                            <h4>1. POS</h4>
+                            <p>Buat pesanan, pilih menu, terima pembayaran</p>
+                            <a href="/admin/pos.html" class="btn btn-secondary btn-sm">Buka POS</a>
+                        </div>
+
+                        <div class="flow-arrow">→</div>
+
+                        <div class="flow-step">
+                            <div class="flow-icon">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                                    <line x1="3" y1="6" x2="21" y2="6"/>
+                                </svg>
+                            </div>
+                            <h4>2. Kelola Pesanan</h4>
+                            <p>Pantau status, ubah status pesanan, lihat detail</p>
+                            <a href="/admin/orders.html" class="btn btn-secondary btn-sm">Lihat Pesanan</a>
+                        </div>
+
+                        <div class="flow-arrow">→</div>
+
+                        <div class="flow-step">
+                            <div class="flow-icon">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="20" x2="18" y2="10"/>
+                                    <line x1="12" y1="20" x2="12" y2="4"/>
+                                    <line x1="6" y1="20" x2="6" y2="14"/>
+                                </svg>
+                            </div>
+                            <h4>3. Laporan</h4>
+                            <p>Analisa penjualan, grafik pendapatan, ekspor data</p>
+                            <a href="/admin/reports.html" class="btn btn-secondary btn-sm">Buka Laporan</a>
+                        </div>
+
+                        <div class="flow-arrow">→</div>
+
+                        <div class="flow-step">
+                            <div class="flow-icon">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="3"/>
+                                    <path d="M12 1v6m0 6v6m7.071-13.071l-4.243 4.243m-5.656 5.656L4.929 19.07M23 12h-6m-6 0H1m18.071 7.071l-4.243-4.243m-5.656-5.656L4.929 4.93"/>
+                                </svg>
+                            </div>
+                            <h4>4. Pengaturan</h4>
+                            <p>Kelola menu, meja, pengguna, metode bayar</p>
+                            <a href="/admin/settings.html" class="btn btn-secondary btn-sm">Atur Sistem</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Getting Started Guide -->
+                <div class="getting-started">
+                    <h3>Panduan Memulai</h3>
+                    <div class="guide-cards">
+                        <div class="guide-card">
+                            <div class="guide-number">1</div>
+                            <h4>Setup Awal</h4>
+                            <p>Lengkapi data restoran Anda di menu <strong>Pengaturan</strong>. Tambahkan metode pembayaran, atur meja, dan kelola akses pengguna.</p>
+                            <a href="/admin/settings.html">Ke Pengaturan →</a>
+                        </div>
+
+                        <div class="guide-card">
+                            <div class="guide-number">2</div>
+                            <h4>Kelola Menu</h4>
+                            <p>Tambahkan menu makanan & minuman, foto, harga, dan kategori. Menu ini akan muncul di POS untuk pemesanan.</p>
+                            <a href="/admin/menu.html">Kelola Menu →</a>
+                        </div>
+
+                        <div class="guide-card">
+                            <div class="guide-number">3</div>
+                            <h4>Mulai Transaksi</h4>
+                            <p>Gunakan <strong>POS</strong> untuk mencatat pesanan pelanggan. Pilih menu, tentukan take-away atau dine-in, dan proses pembayaran.</p>
+                            <a href="/admin/pos.html">Buka POS →</a>
+                        </div>
+
+                        <div class="guide-card">
+                            <div class="guide-number">4</div>
+                            <h4>Monitor & Analisa</h4>
+                            <p>Lihat pesanan aktif di menu <strong>Pesanan</strong>. Gunakan <strong>Laporan</strong> untuk analisa penjualan dan pendapatan.</p>
+                            <a href="/admin/reports.html">Lihat Laporan →</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
 
     <div id="toast-container"></div>
 
+    <!-- Tour Modal -->
+    <div id="tour-modal" class="modal">
+        <div class="modal-content modal-tour">
+            <div class="modal-header">
+                <h3 id="tour-title">Panduan Aplikasi</h3>
+                <button class="modal-close" id="tour-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="tour-step" data-step="0">
+                    <div class="tour-icon">🎉</div>
+                    <h4>Selamat Datang di WarmindoGenZ!</h4>
+                    <p>Mari kenali fitur-fitur utama sistem untuk memaksimalkan operasional restoran Anda.</p>
+                    <ul class="tour-features">
+                        <li>✅ Point of Sale (POS) untuk transaksi cepat</li>
+                        <li>✅ Manajemen pesanan real-time</li>
+                        <li>✅ Laporan penjualan & analitik</li>
+                        <li>✅ Kelola menu, meja, dan pengguna</li>
+                    </ul>
+                </div>
+
+                <div class="tour-step" data-step="1" style="display:none;">
+                    <div class="tour-icon">🛒</div>
+                    <h4>POS - Point of Sale</h4>
+                    <p>Sistem kasir untuk mencatat pesanan pelanggan:</p>
+                    <ul>
+                        <li>Pilih menu dari katalog</li>
+                        <li>Tentukan Dine-In atau Take-Away</li>
+                        <li>Tambahkan catatan khusus untuk dapur</li>
+                        <li>Proses pembayaran (Cash, Transfer, E-Wallet, QRIS)</li>
+                        <li>Upload bukti pembayaran untuk non-tunai</li>
+                    </ul>
+                    <p><strong>Tips:</strong> Gunakan pencarian untuk menemukan menu lebih cepat!</p>
+                </div>
+
+                <div class="tour-step" data-step="2" style="display:none;">
+                    <div class="tour-icon">📦</div>
+                    <h4>Kelola Pesanan</h4>
+                    <p>Pantau dan kelola semua pesanan yang masuk:</p>
+                    <ul>
+                        <li>Lihat status pesanan real-time</li>
+                        <li>Ubah status: Dipesan → Lunas → Dikonfirmasi → Disiapkan → Siap → Tersaji → Selesai</li>
+                        <li>Filter berdasarkan tanggal, status, atau metode bayar</li>
+                        <li>Lihat detail pesanan dan bukti pembayaran</li>
+                        <li>Rekap penjualan otomatis ke laporan</li>
+                    </ul>
+                </div>
+
+                <div class="tour-step" data-step="3" style="display:none;">
+                    <div class="tour-icon">📊</div>
+                    <h4>Laporan & Analitik</h4>
+                    <p>Dapatkan insight bisnis dari data penjualan:</p>
+                    <ul>
+                        <li><strong>Ringkasan:</strong> KPI, grafik pendapatan, breakdown pembayaran</li>
+                        <li><strong>Transaksi:</strong> Daftar lengkap dengan pencarian & ekspor CSV</li>
+                        <li><strong>Per Item:</strong> Menu terlaris, kontribusi pendapatan</li>
+                        <li>Filter periode: Hari ini, 7 hari, 30 hari, atau custom</li>
+                    </ul>
+                    <p><strong>Tips:</strong> Gunakan tombol "Rekap Penjualan" di halaman Pesanan untuk update laporan!</p>
+                </div>
+
+                <div class="tour-step" data-step="4" style="display:none;">
+                    <div class="tour-icon">⚙️</div>
+                    <h4>Pengaturan Sistem</h4>
+                    <p>Kelola konfigurasi restoran Anda:</p>
+                    <ul>
+                        <li><strong>Pembayaran:</strong> Setup E-Wallet, QRIS (upload QR), Transfer Bank</li>
+                        <li><strong>Meja:</strong> Tambah/edit meja, kapasitas, status</li>
+                        <li><strong>Menu:</strong> CRUD menu, kategori, foto, stok</li>
+                        <li><strong>Akun Akses:</strong> Kelola pengguna dan role (Admin, Kasir, Dapur, dll)</li>
+                    </ul>
+                </div>
+
+                <div class="tour-step" data-step="5" style="display:none;">
+                    <div class="tour-icon">🚀</div>
+                    <h4>Siap Memulai!</h4>
+                    <p>Anda sekarang familiar dengan alur kerja WarmindoGenZ.</p>
+                    <div class="tour-quick-actions">
+                        <a href="/admin/settings.html" class="btn btn-primary">Setup Awal</a>
+                        <a href="/admin/menu.html" class="btn btn-secondary">Tambah Menu</a>
+                        <a href="/admin/pos.html" class="btn btn-success">Buka POS</a>
+                    </div>
+                    <p style="margin-top:1rem;"><small>💡 Anda bisa membuka panduan ini kapan saja dengan tombol "Panduan Cepat" di dashboard.</small></p>
+                </div>
+            </div>
+            <div class="modal-footer tour-footer">
+                <button id="tour-prev" class="btn btn-secondary" style="display:none;">← Sebelumnya</button>
+                <div class="tour-progress">
+                    <span id="tour-step-indicator">1 / 6</span>
+                </div>
+                <button id="tour-next" class="btn btn-primary">Selanjutnya →</button>
+            </div>
+        </div>
+    </div>
+
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script type="module" src="https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js"></script>
-    <script type="module">
-        import Chatbot from "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js"
-        Chatbot.init({
-            chatflowid: "61a905a8-9a85-43f5-8e81-9ca0bacf3eaa",
-            apiHost: "http://localhost:3000", // Ganti dengan host Flowise Anda
-        });
-    </script>
     <script type="module" src="js/main.js"></script>
+    <script type="module" src="js/chatbot.js"></script>
 </body>
 </html>

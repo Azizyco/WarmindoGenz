@@ -213,7 +213,8 @@ function bindEvents() {
   });
   elPaymentSelect.addEventListener('change', () => {
     paymentMethod = elPaymentSelect.value;
-    elProofGroup.style.display = paymentMethod === 'transfer' ? '' : 'none';
+    // Tampilkan upload bukti untuk transfer, e-wallet, dan QRIS
+    elProofGroup.style.display = ['transfer','ewallet','qris'].includes(paymentMethod) ? '' : 'none';
   });
   elProofInput.addEventListener('change', e => { proofFile = e.target.files[0] || null; });
   elTableInput && elTableInput.addEventListener('input', () => { tableNo = elTableInput.value.trim(); });
@@ -241,7 +242,8 @@ function closeReceipt() {
 }
 
 async function uploadProofIfNeeded(orderId) {
-  if (!proofFile || paymentMethod !== 'transfer') return null;
+  // Upload bukti untuk metode non-tunai: transfer, e-wallet, dan QRIS
+  if (!proofFile || !['transfer','ewallet','qris'].includes(paymentMethod)) return null;
   const path = `proofs/${orderId}/${Date.now()}_${proofFile.name}`;
   const up = await supabase.storage.from('payment-proofs').upload(path, proofFile, { upsert:false });
   if (up.error) { showToast('Upload bukti gagal', 'error'); return null; }
