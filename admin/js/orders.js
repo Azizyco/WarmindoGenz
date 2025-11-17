@@ -251,15 +251,40 @@ async function setOrderStatus(orderId, newStatus) {
       return { ok:false };
     }
 
-    const { error: e1, status: s1 } = await withRetry(() =>
-      supabase.rpc('set_order_status', { p_order_id: cleanId, p_status: newStatus })
-    );
-    if (e1) {
-      console.error('RPC set_order_status failed:', { s1, e1 });
-      let msg = e1.details || e1.message || 'Status gagal diubah';
-      if (String(msg).includes('invalid input syntax for type uuid')) msg = 'Order ID bukan UUID yang valid.';
-      showToast(msg, 'error');
-      return { ok:false };
+    // Try RPC(s) with graceful fallback and better error surfacing
+    const rpcCandidates = ['set_order_status', 'set_order_status_text', 'set_order_status_v2'];
+    let rpcOk = false;
+    let lastErr = null;
+    for (const fn of rpcCandidates) {
+      try {
+        const { error, status: st } = await withRetry(() => supabase.rpc(fn, { p_order_id: cleanId, p_status: newStatus }));
+        if (!error) { rpcOk = true; break; }
+        lastErr = { error, st, fn };
+        // If ambiguous overload (PGRST203) or not found (404), try next
+        const code = error?.code || '';
+        if (code !== 'PGRST203') {
+          // Non-ambiguous error; continue trying next candidate anyway
+        }
+      } catch (err) {
+        lastErr = { error: err, fn };
+      }
+    }
+
+    if (!rpcOk) {
+      console.error('RPC set_order_status failed (all candidates):', lastErr);
+      const em = lastErr?.error?.details || lastErr?.error?.message || 'Gagal via RPC, mencoba direct update…';
+      showToast(em, 'warning');
+
+      // Last resort: direct update (requires RLS allowing the role to update)
+      const { error: updErr } = await supabase
+        .from('orders')
+        .update({ status: newStatus })
+        .eq('id', cleanId);
+      if (updErr) {
+        console.error('Direct update status failed:', updErr);
+        showToast(updErr?.message || 'Gagal mengubah status (direct)', 'error');
+        return { ok:false };
+      }
     }
     showToast(`Status → ${newStatus}`, 'success');
     return { ok:true };
