@@ -35,6 +35,21 @@ let itemsPagination = {
     searchQuery: ''
 };
 
+// Fetch menu names for given IDs
+async function getMenuNameMap(ids) {
+    const map = new Map();
+    const uniq = Array.from(new Set((ids || []).filter(Boolean)));
+    if (uniq.length === 0) return map;
+    const { data, error } = await supabase
+        .from('menus')
+        .select('id, name')
+        .in('id', uniq);
+    if (!error && Array.isArray(data)) {
+        data.forEach(row => map.set(row.id, row.name));
+    }
+    return map;
+}
+
 // ====== NORMALIZATION HELPERS ======
 function normalizeStatus(value) {
     if (!value) return value;
@@ -779,6 +794,10 @@ async function loadItemsReport() {
             return;
         }
 
+        // Build name map for menu ids
+        const menuIds = Array.from(new Set(data.map(r => r.menu_id).filter(Boolean)));
+        const nameMap = await getMenuNameMap(menuIds);
+
         // Aggregate per menu_id
         const aggMap = new Map();
         let grandRevenue = 0;
@@ -790,7 +809,7 @@ async function loadItemsReport() {
             if (!aggMap.has(key)) {
                 aggMap.set(key, {
                     menu_id: row.menu_id ?? null,
-                    menu_name: row.menu_id != null ? `Menu ${row.menu_id}` : 'Unknown',
+                    menu_name: row.menu_id != null ? (nameMap.get(row.menu_id) || `Menu ${row.menu_id}`) : 'Unknown',
                     total_qty: 0,
                     total_revenue: 0,
                     price_acc: 0,
@@ -1064,6 +1083,10 @@ async function exportItems() {
         const { data, error } = await query;
         if (error) throw error;
 
+        // Build name map
+        const menuIds = Array.from(new Set(data.map(r => r.menu_id).filter(Boolean)));
+        const nameMap = await getMenuNameMap(menuIds);
+
         // Aggregate (reuse logic)
         const aggMap = new Map();
         let grandRevenue = 0;
@@ -1075,7 +1098,7 @@ async function exportItems() {
             if (!aggMap.has(key)) {
                 aggMap.set(key, {
                     menu_id: row.menu_id ?? null,
-                    menu_name: row.menu_id != null ? `Menu ${row.menu_id}` : 'Unknown',
+                    menu_name: row.menu_id != null ? (nameMap.get(row.menu_id) || `Menu ${row.menu_id}`) : 'Unknown',
                     total_qty: 0,
                     total_revenue: 0,
                     price_acc: 0,
